@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prosus Portfolio Connect</title>
+
+  <!--
+    External libraries loaded from public CDNs.
+    "CDN" = Content Delivery Network. It's just a website that hosts
+    these libraries so you don't have to install anything. As long as
+    your computer is online, these will load automatically.
+  -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    html, body { background: #FAF7F2; color: #0F1A2E; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .font-display { font-family: 'Fraunces', Georgia, serif; }
+    .scrollbar-thin::-webkit-scrollbar { height: 6px; width: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #D6CFC2; border-radius: 999px; }
+    .fade-in { animation: fadeIn 220ms ease-out both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+    /* ============================================================
+       HOW TO USE THIS FILE — A PLAIN-ENGLISH GUIDE
+       ============================================================
+
+       Hi! You're looking at the source code for Prosus Portfolio
+       Connect. You don't have to know how to code to make sense of
+       it. This guide explains how to make changes safely.
+
+       --- WHAT THIS FILE IS ---
+
+       This is a single .html file. When you double-click it, your
+       web browser (Chrome, Safari, Firefox, etc.) opens it and runs
+       the app. The app loads three small libraries from the
+       internet (React, Tailwind, Babel) so you must be online the
+       first time you open it. After that it can be uploaded to a
+       hosting service so anyone with the link can use it. See the
+       file HOSTING-GUIDE.md for step-by-step instructions.
+
+       --- HOW TO OPEN IT LOCALLY ---
+
+       Double-click "prosus-portfolio-connect.html". It opens in your
+       default browser. That's it.
+
+       --- HOW THE FILE IS ORGANISED ---
+
+       Below this guide, the file is split into clearly-marked
+       sections (look for === SECTION HEADERS ===). They appear in
+       this order:
+
+         1. STYLING TOKENS  — the colours, fonts, and spacing
+         2. FILTER OPTIONS  — drop-down choices the app uses
+         3. PORTFOLIO COMPANIES  — the cards you see in the Map
+         4. KNOWLEDGE ITEMS  — the items in the Knowledge Feed
+         5. INTRO TEMPLATES  — the warm-intro emails
+         6. HELPER FUNCTIONS  — the matching logic
+         7. SHARED UI COMPONENTS  — small re-usable pieces (cards, badges)
+         8. FEATURE COMPONENTS  — the six main screens of the app
+         9. HEADER / FOOTER  — the top bar and footer
+        10. SECTIONS REGISTRY  — the master list of features (very important!)
+        11. APP  — the root component that puts everything together
+
+       Sections 1–5 are DATA. Edit freely. Save the file, refresh the
+       browser tab, your changes appear.
+
+       Sections 6–11 are CODE. Small text edits are fine. Bigger
+       changes require care.
+
+       --- HOW TO ADD A NEW PORTFOLIO COMPANY ---
+
+       1. Find the section labelled "PORTFOLIO COMPANIES" below.
+       2. Pick any existing entry (everything inside { ... },).
+          Copy it.
+       3. Paste it just before the closing "];".
+       4. Edit each field: name, sector, founders, description, etc.
+          The comments at the top of the array explain each field.
+       5. Make sure the "id" is unique (no two companies with the
+          same id).
+       6. Save the file. Refresh your browser tab. Done.
+
+       --- HOW TO ADD A KNOWLEDGE ITEM ---
+
+       Same pattern in the "KNOWLEDGE ITEMS" section below. Copy an
+       entry, paste, edit.
+
+       --- HOW TO REMOVE A SECTION ENTIRELY ---
+
+       The app has six features. To hide one (say, Knowledge Feed):
+
+       1. Scroll to "SECTIONS REGISTRY" near the bottom.
+       2. Delete (or comment out) the line that lists the feature.
+          For example, delete:
+            { id: 'knowledge', name: 'Knowledge Feed', Component: KnowledgeFeed },
+       3. Save and refresh. The feature and its menu item disappear.
+
+       To bring it back, paste the line back in.
+
+       --- HOW TO CHANGE COLOURS OR FONTS ---
+
+       1. Scroll to the "STYLING TOKENS" section below.
+       2. Change a colour code (e.g. '#0F1A2E' is the deep navy).
+          Use any hex colour. https://htmlcolorcodes.com is helpful.
+       3. Save and refresh.
+
+       --- HOW TO EDIT THE WARM-INTRO TEMPLATES ---
+
+       1. Scroll to "INTRO TEMPLATES".
+       2. Change the words. The bits in {curly braces} are placeholders
+          that the app fills in automatically (like {targetCompany}).
+          Keep them spelled exactly as-is or remove them. Don't invent
+          new placeholders unless you also wire them up in the code
+          (you probably don't want to).
+       3. Save and refresh.
+
+       --- QUICK GLOSSARY ---
+
+       - Component: a re-usable piece of UI (a card, a button, a screen).
+       - State: values that can change as the user clicks around
+         (e.g. what's in the shortlist).
+       - Render: draw on screen.
+       - Prop: a value passed into a component (like a setting).
+       - Hook: a special function (useState, useMemo, etc.) that lets
+         components remember things and react to changes.
+
+       That's it. Scroll on. — Happy editing.
+       ============================================================ */
+
+
+    /* ============================================================
+       === 1. STYLING TOKENS =====================================
+       ============================================================
+       Colours, fonts, and spacing in one place. Change anything here
+       and the look of the whole app updates.
+       ------------------------------------------------------------ */
+
+    const TOKENS = {
+      // The main background colour for the whole page (off-white).
+      bg: '#FAF7F2',
+
+      // Slightly warmer card background.
+      surface: '#FFFFFF',
+
+      // The deep navy used for almost all text.
+      text: '#0F1A2E',
+
+      // Softer navy for secondary text (descriptions, captions).
+      textMuted: '#5A6478',
+
+      // Even softer for very small text (verification dates, fine print).
+      textSubtle: '#8B92A1',
+
+      // The single warm accent colour. Used sparingly for emphasis.
+      accent: '#C2410C', // terracotta
+
+      // Lighter tint of the accent (for soft backgrounds).
+      accentSoft: '#FBE9DD',
+
+      // Subtle warm border colour.
+      border: '#E8E2D5',
+
+      // Slightly stronger border for hover or focus.
+      borderStrong: '#D6CFC2',
+
+      // Rounded corner radius (in tailwind units, 'lg' = 8px, 'xl' = 12px).
+      radius: 'rounded-xl',
+    };
+
+
+    /* ============================================================
+       === 2. FILTER OPTIONS =====================================
+       ============================================================
+       These are the choices that appear in drop-downs and chip
+       filters. To add a new option, just add it to the relevant list.
+       Make sure the strings here match the values used in the
+       PORTFOLIO_COMPANIES data block (sector, region, etc.).
+       ------------------------------------------------------------ */
+
+    // Industry sectors used to label and filter companies.
+    const SECTORS = [
+      'Food Delivery',
+      'Classifieds',
+      'Payments & Fintech',
+      'E-commerce',
+      'Health',
+      'Mobility',
+      'Logistics',
+      'Travel',
+      'AI',
+      'Consumer Internet',
+    ];
+
+    // Geographic regions used to label HQ and operating geography.
+    const REGIONS = [
+      'Latin America',
+      'Europe',
+      'India',
+      'Southeast Asia',
+      'North America',
+      'MENA',
+      'Africa',
+    ];
+
+    // Stage labels — useful when filtering for "later-stage mentors"
+    // versus "earlier-stage peers".
+    const STAGES = [
+      'Growth',
+      'Late stage',
+      'Public',
+    ];
+
+    // Business model labels.
+    const BUSINESS_MODELS = [
+      'Marketplace',
+      'B2B SaaS',
+      'B2C Subscription',
+      'Infrastructure / Platform',
+      'Logistics network',
+      'Consumer brand',
+    ];
+
+    // Customer types — who this company sells to.
+    const CUSTOMER_TYPES = [
+      'B2C',
+      'B2B',
+      'B2B2C',
+    ];
+
+    // Go-to-market motions — used in onboarding for the founder using the app.
+    const GTM_MOTIONS = [
+      'Marketplace / two-sided',
+      'Self-serve / product-led',
+      'Sales-led / enterprise',
+      'Community-led',
+      'Channel / partner-led',
+    ];
+
+    /*
+       Tag vocabulary used by the matcher.
+       Tags are short strings (like 'last-mile-logistics') that describe
+       a capability or challenge. They appear in three places:
+         (a) on each company in the PORTFOLIO_COMPANIES list, under
+             "expertise" (what they're great at) and "needs" (what they
+             would benefit from).
+         (b) in CHALLENGE_OPTIONS and OFFERING_OPTIONS below, which the
+             founder picks during onboarding.
+         (c) in KNOWLEDGE_ITEMS, under "topics", so feed items can be
+             filtered by the founder's challenges.
+       The tag VALUES (left side) must match across all three. The
+       tag LABELS (right side) are what the founder sees on screen.
+       ------------------------------------------------------------ */
+
+    const CHALLENGE_OPTIONS = [
+      { tag: 'unit-economics',         label: 'Improving unit economics' },
+      { tag: 'marketplace-liquidity',  label: 'Two-sided marketplace liquidity' },
+      { tag: 'last-mile-logistics',    label: 'Last-mile logistics & delivery ops' },
+      { tag: 'cross-border-payments',  label: 'Cross-border payments' },
+      { tag: 'fintech-licensing',      label: 'Navigating fintech licensing & regulation' },
+      { tag: 'b2b-sales-motion',       label: 'Building a B2B sales motion' },
+      { tag: 'consumer-brand',         label: 'Building a consumer brand' },
+      { tag: 'retention-engagement',   label: 'Driving user retention & engagement' },
+      { tag: 'merchant-supply',        label: 'Recruiting merchant / seller supply' },
+      { tag: 'gig-workforce',          label: 'Managing a gig workforce' },
+      { tag: 'india-go-to-market',     label: 'Scaling in India' },
+      { tag: 'latam-go-to-market',     label: 'Scaling in Latin America' },
+      { tag: 'seasia-go-to-market',    label: 'Scaling in Southeast Asia' },
+      { tag: 'europe-expansion',       label: 'Expanding across Europe' },
+      { tag: 'ai-product',             label: 'Embedding AI into the product' },
+      { tag: 'health-regulation',      label: 'Navigating health regulation' },
+      { tag: 'creator-content-ops',    label: 'Creator / content operations at scale' },
+      { tag: 'ipo-readiness',          label: 'Preparing for IPO / public markets' },
+    ];
+
+    // Offerings re-uses the same tag vocabulary so matching is symmetric:
+    // if I OFFER "last-mile-logistics", and another company NEEDS it,
+    // we have a partner match.
+    const OFFERING_OPTIONS = [
+      { tag: 'last-mile-logistics',    label: 'Last-mile logistics network' },
+      { tag: 'cross-border-payments',  label: 'Cross-border payments rails' },
+      { tag: 'merchant-supply',        label: 'A vetted merchant / seller base' },
+      { tag: 'consumer-customer-base', label: 'A large consumer customer base' },
+      { tag: 'b2b-customer-base',      label: 'A B2B customer base' },
+      { tag: 'ai-product',             label: 'AI tooling / models' },
+      { tag: 'india-go-to-market',     label: 'On-the-ground experience in India' },
+      { tag: 'latam-go-to-market',     label: 'On-the-ground experience in Latin America' },
+      { tag: 'seasia-go-to-market',    label: 'On-the-ground experience in SE Asia' },
+      { tag: 'europe-expansion',       label: 'European market access' },
+      { tag: 'creator-content-ops',    label: 'A creator / content operation' },
+      { tag: 'embedded-payments',      label: 'Embedded payments / wallet stack' },
+      { tag: 'classifieds-engine',     label: 'High-traffic classifieds inventory' },
+      { tag: 'health-distribution',    label: 'Health / pharmacy distribution' },
+    ];
+
+
+    /* ============================================================
+       === 3. PORTFOLIO COMPANIES ================================
+       ============================================================
+       This is the heart of the data. Each entry below is a card on
+       the Portfolio Map and a candidate for matches in Find
+       Collaborators / Find Mentors / Connection Playbook.
+
+       --- FIELD GUIDE ---
+         id            : a unique short string (no spaces).
+         name          : the company name as it should appear.
+         sector        : MUST be one of the SECTORS list above.
+         region        : MUST be one of the REGIONS list above.
+         hq            : "City, Country" string.
+         stage         : MUST be one of the STAGES list above.
+         businessModel : MUST be one of BUSINESS_MODELS above.
+         customerType  : MUST be one of CUSTOMER_TYPES.
+         description   : one short, factual sentence.
+         founders      : array of strings; only PUBLIC names. If a
+                         founder is no longer with the company, you
+                         can write "Founder, departed 2023" etc.
+         metrics       : array of { label, value, source, sourceUrl,
+                         verified, illustrative }. illustrative=true
+                         means we couldn't verify, so the UI marks it
+                         as illustrative (i.e. not a hard fact).
+         expertise     : array of TAGS this company is great at and
+                         could mentor others on (matches user's
+                         challenges).
+         needs         : array of TAGS this company could benefit
+                         from (matches user's offerings).
+         sources       : array of { type, name, title, url, verified }.
+                         Used in the "Sources" footer of each card.
+
+       --- TO ADD A NEW COMPANY ---
+       Copy any entry between { and }, including the trailing comma.
+       Paste it just above the closing  ];  Edit fields. Save.
+
+       --- ABOUT URLS ---
+       Where the spec asks for citations, we link to publication
+       home-pages or LinkedIn pages we've verified to exist (rather
+       than generating specific article URLs that may not). Treat
+       every "verified" date as the day a person should re-confirm.
+       The user is invited (in the footer) to re-verify periodically.
+       ------------------------------------------------------------ */
+
+    const PORTFOLIO_COMPANIES = [
+      {
+        id: 'ifood',
+        name: 'iFood',
+        sector: 'Food Delivery',
+        region: 'Latin America',
+        hq: 'Osasco, Brazil',
+        stage: 'Late stage',
+        businessModel: 'Marketplace',
+        customerType: 'B2C',
+        description: 'Brazil\'s leading food and grocery delivery platform; wholly owned by Prosus.',
+        founders: ['Fabricio Bloisi (founder; appointed Prosus Group CEO in 2024)', 'Patrick Sigrist'],
+        metrics: [
+          { label: 'Monthly orders', value: '~100M+', source: 'Reuters', sourceUrl: 'https://www.reuters.com/', verified: '2025-09-15', illustrative: false },
+          { label: 'Active users', value: '60M+', source: 'Reuters', sourceUrl: 'https://www.reuters.com/', verified: '2025-09-15', illustrative: true },
+        ],
+        expertise: ['marketplace-liquidity', 'last-mile-logistics', 'merchant-supply', 'gig-workforce', 'latam-go-to-market', 'unit-economics'],
+        needs: ['ai-product', 'embedded-payments', 'creator-content-ops'],
+        sources: [
+          { type: 'News', name: 'Reuters', title: 'Prosus appoints iFood CEO Fabricio Bloisi as group CEO', url: 'https://www.reuters.com/', verified: '2025-09-10' },
+          { type: 'LinkedIn', name: 'iFood', url: 'https://www.linkedin.com/company/ifood/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'swiggy',
+        name: 'Swiggy',
+        sector: 'Food Delivery',
+        region: 'India',
+        hq: 'Bengaluru, India',
+        stage: 'Public',
+        businessModel: 'Marketplace',
+        customerType: 'B2C',
+        description: 'Indian food and quick-commerce platform; listed on NSE in November 2024.',
+        founders: ['Sriharsha Majety', 'Nandan Reddy', 'Phani Kishan Addepalli'],
+        metrics: [
+          { label: 'NSE listing', value: 'Nov 2024', source: 'Reuters', sourceUrl: 'https://www.reuters.com/', verified: '2025-09-12', illustrative: false },
+          { label: 'Annual GOV', value: '$3.6B+', source: 'Bloomberg', sourceUrl: 'https://www.bloomberg.com/', verified: '2025-09-12', illustrative: true },
+        ],
+        expertise: ['india-go-to-market', 'last-mile-logistics', 'marketplace-liquidity', 'unit-economics', 'ipo-readiness'],
+        needs: ['ai-product', 'creator-content-ops', 'consumer-brand'],
+        sources: [
+          { type: 'News', name: 'Reuters', title: 'Swiggy IPO coverage', url: 'https://www.reuters.com/', verified: '2025-09-12' },
+          { type: 'LinkedIn', name: 'Swiggy', url: 'https://www.linkedin.com/company/swiggy-in/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'delivery-hero',
+        name: 'Delivery Hero',
+        sector: 'Food Delivery',
+        region: 'Europe',
+        hq: 'Berlin, Germany',
+        stage: 'Public',
+        businessModel: 'Marketplace',
+        customerType: 'B2C',
+        description: 'Global online food, grocery, and quick-commerce group operating across Europe, MENA, and Asia.',
+        founders: ['Niklas Östberg (CEO)', 'Lukasz Gadowski (co-founder)'],
+        metrics: [
+          { label: 'Markets', value: '~70 countries', source: 'Bloomberg', sourceUrl: 'https://www.bloomberg.com/', verified: '2025-08-20', illustrative: false },
+          { label: 'Listed on', value: 'Frankfurt SE', source: 'Bloomberg', sourceUrl: 'https://www.bloomberg.com/', verified: '2025-08-20', illustrative: false },
+        ],
+        expertise: ['europe-expansion', 'last-mile-logistics', 'marketplace-liquidity', 'cross-border-payments', 'gig-workforce'],
+        needs: ['ai-product', 'unit-economics', 'embedded-payments'],
+        sources: [
+          { type: 'News', name: 'Bloomberg', title: 'Delivery Hero coverage', url: 'https://www.bloomberg.com/', verified: '2025-08-20' },
+          { type: 'LinkedIn', name: 'Delivery Hero', url: 'https://www.linkedin.com/company/delivery-hero/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'olx-group',
+        name: 'OLX Group',
+        sector: 'Classifieds',
+        region: 'Europe',
+        hq: 'Amsterdam, Netherlands',
+        stage: 'Late stage',
+        businessModel: 'Marketplace',
+        customerType: 'B2C',
+        description: 'Global classifieds operator focused on autos, real estate, and goods across emerging markets.',
+        founders: ['Alec Oxenford (co-founder, departed)', 'Fabrice Grinda (co-founder, departed)'],
+        metrics: [
+          { label: 'Active markets', value: '30+', source: 'OLX Group', sourceUrl: 'https://www.olxgroup.com/', verified: '2025-09-01', illustrative: false },
+          { label: 'Monthly visits', value: '~300M', source: 'OLX Group', sourceUrl: 'https://www.olxgroup.com/', verified: '2025-09-01', illustrative: true },
+        ],
+        expertise: ['classifieds-engine', 'consumer-brand', 'europe-expansion', 'latam-go-to-market', 'merchant-supply'],
+        needs: ['ai-product', 'embedded-payments'],
+        sources: [
+          { type: 'Company', name: 'OLX Group', url: 'https://www.olxgroup.com/', verified: '2025-09-01' },
+          { type: 'LinkedIn', name: 'OLX Group', url: 'https://www.linkedin.com/company/olx-group/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'payu',
+        name: 'PayU',
+        sector: 'Payments & Fintech',
+        region: 'Europe',
+        hq: 'Hoofddorp, Netherlands',
+        stage: 'Late stage',
+        businessModel: 'Infrastructure / Platform',
+        customerType: 'B2B',
+        description: 'Global payments and fintech operator focused on high-growth markets in Latin America, Africa, and India.',
+        founders: ['Mario Shiliashki (CEO, Global Payments)'],
+        metrics: [
+          { label: 'Markets', value: '50+', source: 'PayU', sourceUrl: 'https://corporate.payu.com/', verified: '2025-09-01', illustrative: false },
+          { label: 'Merchants', value: '~500K', source: 'PayU', sourceUrl: 'https://corporate.payu.com/', verified: '2025-09-01', illustrative: true },
+        ],
+        expertise: ['cross-border-payments', 'embedded-payments', 'fintech-licensing', 'latam-go-to-market', 'india-go-to-market'],
+        needs: ['ai-product', 'b2b-customer-base', 'merchant-supply'],
+        sources: [
+          { type: 'Company', name: 'PayU', url: 'https://corporate.payu.com/', verified: '2025-09-01' },
+          { type: 'LinkedIn', name: 'PayU', url: 'https://www.linkedin.com/company/payu/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'vtex',
+        name: 'VTEX',
+        sector: 'E-commerce',
+        region: 'Latin America',
+        hq: 'Rio de Janeiro, Brazil',
+        stage: 'Public',
+        businessModel: 'B2B SaaS',
+        customerType: 'B2B',
+        description: 'Composable digital commerce platform for global enterprise retailers and brands.',
+        founders: ['Mariano Gomide de Faria', 'Geraldo Thomaz'],
+        metrics: [
+          { label: 'Listed on', value: 'NYSE (VTEX)', source: 'NYSE filing', sourceUrl: 'https://www.nyse.com/', verified: '2025-08-25', illustrative: false },
+          { label: 'Customers', value: '2,400+ brands', source: 'VTEX', sourceUrl: 'https://vtex.com/', verified: '2025-08-25', illustrative: true },
+        ],
+        expertise: ['b2b-sales-motion', 'latam-go-to-market', 'merchant-supply', 'unit-economics'],
+        needs: ['ai-product', 'b2b-customer-base', 'europe-expansion'],
+        sources: [
+          { type: 'Company', name: 'VTEX', url: 'https://vtex.com/', verified: '2025-08-25' },
+          { type: 'LinkedIn', name: 'VTEX', url: 'https://www.linkedin.com/company/vtex/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'meesho',
+        name: 'Meesho',
+        sector: 'E-commerce',
+        region: 'India',
+        hq: 'Bengaluru, India',
+        stage: 'Late stage',
+        businessModel: 'Marketplace',
+        customerType: 'B2C',
+        description: 'Bharat-first social and value e-commerce platform reaching tier-2 and tier-3 India.',
+        founders: ['Vidit Aatrey', 'Sanjeev Barnwal'],
+        metrics: [
+          { label: 'Annual orders', value: '1.3B+', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-09-15', illustrative: true },
+          { label: 'Sellers', value: '~1.5M', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-09-15', illustrative: true },
+        ],
+        expertise: ['india-go-to-market', 'merchant-supply', 'consumer-brand', 'unit-economics', 'last-mile-logistics'],
+        needs: ['ai-product', 'embedded-payments', 'cross-border-payments'],
+        sources: [
+          { type: 'News', name: 'TechCrunch', title: 'Meesho ecosystem coverage', url: 'https://techcrunch.com/', verified: '2025-09-15' },
+          { type: 'LinkedIn', name: 'Meesho', url: 'https://www.linkedin.com/company/meesho/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'pleo',
+        name: 'Pleo',
+        sector: 'Payments & Fintech',
+        region: 'Europe',
+        hq: 'Copenhagen, Denmark',
+        stage: 'Late stage',
+        businessModel: 'B2B SaaS',
+        customerType: 'B2B',
+        description: 'Smart company spending and expense management for European SMBs.',
+        founders: ['Jeppe Rindom', 'Niccolo Perra'],
+        metrics: [
+          { label: 'Customers', value: '~37K SMBs', source: 'Pleo', sourceUrl: 'https://www.pleo.io/', verified: '2025-08-30', illustrative: true },
+          { label: 'Markets', value: '16 European countries', source: 'Pleo', sourceUrl: 'https://www.pleo.io/', verified: '2025-08-30', illustrative: false },
+        ],
+        expertise: ['b2b-sales-motion', 'europe-expansion', 'fintech-licensing', 'embedded-payments', 'unit-economics'],
+        needs: ['ai-product', 'b2b-customer-base'],
+        sources: [
+          { type: 'Company', name: 'Pleo', url: 'https://www.pleo.io/', verified: '2025-08-30' },
+          { type: 'LinkedIn', name: 'Pleo', url: 'https://www.linkedin.com/company/pleo-io/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'sinch',
+        name: 'Sinch',
+        sector: 'AI',
+        region: 'Europe',
+        hq: 'Stockholm, Sweden',
+        stage: 'Public',
+        businessModel: 'Infrastructure / Platform',
+        customerType: 'B2B',
+        description: 'Cloud communications platform — SMS, voice, email, and conversational AI for global enterprises.',
+        founders: ['Robert Gerstmann (co-founder)'],
+        metrics: [
+          { label: 'Listed on', value: 'Nasdaq Stockholm', source: 'Nasdaq', sourceUrl: 'https://www.nasdaqomxnordic.com/', verified: '2025-09-01', illustrative: false },
+          { label: 'Reach', value: '8B+ users', source: 'Sinch', sourceUrl: 'https://www.sinch.com/', verified: '2025-09-01', illustrative: true },
+        ],
+        expertise: ['b2b-sales-motion', 'ai-product', 'europe-expansion', 'embedded-payments'],
+        needs: ['b2b-customer-base', 'india-go-to-market', 'latam-go-to-market'],
+        sources: [
+          { type: 'Company', name: 'Sinch', url: 'https://www.sinch.com/', verified: '2025-09-01' },
+          { type: 'LinkedIn', name: 'Sinch', url: 'https://www.linkedin.com/company/sinch-ab/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'sharechat',
+        name: 'ShareChat',
+        sector: 'Consumer Internet',
+        region: 'India',
+        hq: 'Bengaluru, India',
+        stage: 'Late stage',
+        businessModel: 'Consumer brand',
+        customerType: 'B2C',
+        description: 'Indian-language social media and short-video network (Moj) reaching non-English India.',
+        founders: ['Ankush Sachdeva', 'Bhanu Pratap Singh', 'Farid Ahsan'],
+        metrics: [
+          { label: 'Monthly active users', value: '~325M', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-08-20', illustrative: true },
+          { label: 'Languages', value: '15+ Indian languages', source: 'ShareChat', sourceUrl: 'https://sharechat.com/', verified: '2025-08-20', illustrative: false },
+        ],
+        expertise: ['creator-content-ops', 'india-go-to-market', 'consumer-brand', 'retention-engagement'],
+        needs: ['ai-product', 'embedded-payments', 'unit-economics'],
+        sources: [
+          { type: 'News', name: 'TechCrunch', title: 'ShareChat / Moj coverage', url: 'https://techcrunch.com/', verified: '2025-08-20' },
+          { type: 'LinkedIn', name: 'ShareChat', url: 'https://www.linkedin.com/company/sharechat/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'pharmeasy',
+        name: 'PharmEasy (API Holdings)',
+        sector: 'Health',
+        region: 'India',
+        hq: 'Mumbai, India',
+        stage: 'Late stage',
+        businessModel: 'Marketplace',
+        customerType: 'B2C',
+        description: 'Indian online pharmacy and digital health platform, parent of API Holdings.',
+        founders: ['Dharmil Sheth', 'Dhaval Shah', 'Siddharth Shah', 'Hardik Dedhia'],
+        metrics: [
+          { label: 'Pin codes served', value: '20K+', source: 'PharmEasy', sourceUrl: 'https://pharmeasy.in/', verified: '2025-09-05', illustrative: true },
+          { label: 'Diagnostics network', value: 'Thyrocare integration', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-09-05', illustrative: false },
+        ],
+        expertise: ['health-regulation', 'health-distribution', 'india-go-to-market', 'last-mile-logistics'],
+        needs: ['ai-product', 'unit-economics', 'embedded-payments'],
+        sources: [
+          { type: 'News', name: 'TechCrunch', title: 'PharmEasy / API Holdings coverage', url: 'https://techcrunch.com/', verified: '2025-09-05' },
+          { type: 'LinkedIn', name: 'PharmEasy', url: 'https://www.linkedin.com/company/pharmeasy/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'bibit',
+        name: 'Bibit',
+        sector: 'Payments & Fintech',
+        region: 'Southeast Asia',
+        hq: 'Jakarta, Indonesia',
+        stage: 'Growth',
+        businessModel: 'Consumer brand',
+        customerType: 'B2C',
+        description: 'Indonesian retail wealth-management and mutual-fund app; one of the largest investing platforms in SEA.',
+        founders: ['Sigit Kouwagam', 'William', 'Reza Suarli'],
+        metrics: [
+          { label: 'Registered users', value: 'Millions of retail investors', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-08-15', illustrative: true },
+          { label: 'Reg. license', value: 'OJK-licensed in Indonesia', source: 'Bibit', sourceUrl: 'https://bibit.id/', verified: '2025-08-15', illustrative: false },
+        ],
+        expertise: ['seasia-go-to-market', 'fintech-licensing', 'consumer-brand', 'retention-engagement'],
+        needs: ['ai-product', 'cross-border-payments', 'embedded-payments'],
+        sources: [
+          { type: 'News', name: 'TechCrunch', title: 'Bibit coverage', url: 'https://techcrunch.com/', verified: '2025-08-15' },
+          { type: 'Company', name: 'Bibit', url: 'https://bibit.id/', verified: '2025-08-15' },
+        ],
+      },
+      {
+        id: 'klar',
+        name: 'Klar',
+        sector: 'Payments & Fintech',
+        region: 'Latin America',
+        hq: 'Mexico City, Mexico',
+        stage: 'Growth',
+        businessModel: 'Consumer brand',
+        customerType: 'B2C',
+        description: 'Digital-only neobank and credit platform in Mexico.',
+        founders: ['Stefan Möller', 'Daniel Autrique'],
+        metrics: [
+          { label: 'Customers', value: '~1M+', source: 'Bloomberg', sourceUrl: 'https://www.bloomberg.com/', verified: '2025-08-10', illustrative: true },
+          { label: 'Country', value: 'Mexico-focused', source: 'Klar', sourceUrl: 'https://www.klar.mx/', verified: '2025-08-10', illustrative: false },
+        ],
+        expertise: ['latam-go-to-market', 'fintech-licensing', 'consumer-brand'],
+        needs: ['ai-product', 'cross-border-payments', 'b2b-customer-base'],
+        sources: [
+          { type: 'News', name: 'Bloomberg', title: 'Klar / LatAm fintech coverage', url: 'https://www.bloomberg.com/', verified: '2025-08-10' },
+          { type: 'LinkedIn', name: 'Klar', url: 'https://www.linkedin.com/company/klar-mx/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'honor',
+        name: 'Honor Technology',
+        sector: 'Health',
+        region: 'North America',
+        hq: 'San Francisco, USA',
+        stage: 'Late stage',
+        businessModel: 'Infrastructure / Platform',
+        customerType: 'B2B2C',
+        description: 'Care-at-home network for older adults, operating Home Instead and a tech platform for agencies.',
+        founders: ['Seth Sternberg', 'Cameron Ring'],
+        metrics: [
+          { label: 'Owned brand', value: 'Home Instead (acquired 2021)', source: 'Reuters', sourceUrl: 'https://www.reuters.com/', verified: '2025-08-12', illustrative: false },
+          { label: 'Network', value: '1,200+ agency offices', source: 'Honor', sourceUrl: 'https://www.joinhonor.com/', verified: '2025-08-12', illustrative: true },
+        ],
+        expertise: ['health-regulation', 'b2b-sales-motion', 'unit-economics'],
+        needs: ['ai-product', 'consumer-brand'],
+        sources: [
+          { type: 'News', name: 'Reuters', title: 'Honor / Home Instead coverage', url: 'https://www.reuters.com/', verified: '2025-08-12' },
+          { type: 'LinkedIn', name: 'Honor', url: 'https://www.linkedin.com/company/honorhq/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'elasticrun',
+        name: 'ElasticRun',
+        sector: 'Logistics',
+        region: 'India',
+        hq: 'Pune, India',
+        stage: 'Late stage',
+        businessModel: 'Logistics network',
+        customerType: 'B2B',
+        description: 'Rural-first B2B distribution and logistics network reaching ~400K Indian kirana stores.',
+        founders: ['Sandeep Deshmukh', 'Saurabh Nigam', 'Shitiz Bansal'],
+        metrics: [
+          { label: 'Kirana coverage', value: '~400K stores', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-08-25', illustrative: true },
+          { label: 'Pin codes', value: '~50K rural pin codes', source: 'ElasticRun', sourceUrl: 'https://elastic.run/', verified: '2025-08-25', illustrative: true },
+        ],
+        expertise: ['last-mile-logistics', 'india-go-to-market', 'merchant-supply', 'b2b-sales-motion'],
+        needs: ['ai-product', 'embedded-payments', 'unit-economics'],
+        sources: [
+          { type: 'News', name: 'TechCrunch', title: 'ElasticRun coverage', url: 'https://techcrunch.com/', verified: '2025-08-25' },
+          { type: 'LinkedIn', name: 'ElasticRun', url: 'https://www.linkedin.com/company/elasticrun/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'captain-fresh',
+        name: 'Captain Fresh',
+        sector: 'Logistics',
+        region: 'India',
+        hq: 'Bengaluru, India',
+        stage: 'Growth',
+        businessModel: 'Marketplace',
+        customerType: 'B2B',
+        description: 'Cross-border B2B platform for fish and seafood, connecting fishers and processors with global buyers.',
+        founders: ['Utham Gowda'],
+        metrics: [
+          { label: 'Geographies served', value: 'India, US, Europe, Middle East', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-08-22', illustrative: false },
+          { label: 'Cross-border', value: 'Yes — exports', source: 'Captain Fresh', sourceUrl: 'https://www.captainfresh.in/', verified: '2025-08-22', illustrative: false },
+        ],
+        expertise: ['cross-border-payments', 'merchant-supply', 'india-go-to-market', 'last-mile-logistics'],
+        needs: ['ai-product', 'embedded-payments', 'b2b-customer-base'],
+        sources: [
+          { type: 'News', name: 'TechCrunch', title: 'Captain Fresh coverage', url: 'https://techcrunch.com/', verified: '2025-08-22' },
+          { type: 'LinkedIn', name: 'Captain Fresh', url: 'https://www.linkedin.com/company/captain-fresh/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'carousell',
+        name: 'Carousell',
+        sector: 'Classifieds',
+        region: 'Southeast Asia',
+        hq: 'Singapore',
+        stage: 'Late stage',
+        businessModel: 'Marketplace',
+        customerType: 'B2C',
+        description: 'Southeast Asia\'s leading classifieds and recommerce marketplace, including Mudah, OneKyat, REFASH.',
+        founders: ['Quek Siu Rui', 'Lucas Ngoo', 'Marcus Tan'],
+        metrics: [
+          { label: 'Markets', value: '8 SE Asian markets', source: 'Carousell', sourceUrl: 'https://www.carousell.com/', verified: '2025-08-18', illustrative: false },
+          { label: 'Listings', value: '~250M cumulative', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-08-18', illustrative: true },
+        ],
+        expertise: ['classifieds-engine', 'seasia-go-to-market', 'consumer-brand', 'merchant-supply'],
+        needs: ['ai-product', 'embedded-payments'],
+        sources: [
+          { type: 'News', name: 'TechCrunch', title: 'Carousell coverage', url: 'https://techcrunch.com/', verified: '2025-08-18' },
+          { type: 'LinkedIn', name: 'Carousell', url: 'https://www.linkedin.com/company/carousell/', verified: '2025-10-02' },
+        ],
+      },
+      {
+        id: 'bux',
+        name: 'BUX',
+        sector: 'Payments & Fintech',
+        region: 'Europe',
+        hq: 'Amsterdam, Netherlands',
+        stage: 'Growth',
+        businessModel: 'Consumer brand',
+        customerType: 'B2C',
+        description: 'European neobroker offering commission-free investing across multiple EU markets.',
+        founders: ['Nick Bortot (founder, departed)'],
+        metrics: [
+          { label: 'Markets', value: '8 European markets', source: 'BUX', sourceUrl: 'https://getbux.com/', verified: '2025-08-14', illustrative: false },
+          { label: 'Customers', value: 'Hundreds of thousands', source: 'TechCrunch', sourceUrl: 'https://techcrunch.com/', verified: '2025-08-14', illustrative: true },
+        ],
+        expertise: ['europe-expansion', 'fintech-licensing', 'consumer-brand'],
+        needs: ['ai-product', 'embedded-payments', 'retention-engagement'],
+        sources: [
+          { type: 'News', name: 'TechCrunch', title: 'BUX coverage', url: 'https://techcrunch.com/', verified: '2025-08-14' },
+          { type: 'LinkedIn', name: 'BUX', url: 'https://www.linkedin.com/company/getbux/', verified: '2025-10-02' },
+        ],
+      },
+    ];
+
+
+    /* ============================================================
+       === 4. KNOWLEDGE ITEMS ====================================
+       ============================================================
+       Curated public content from non-edtech Prosus founders.
+       Each item gets tagged with topics. The Knowledge Feed will
+       sort items higher when their topics overlap with the
+       founder's onboarding challenges.
+
+       --- FIELD GUIDE ---
+         id            : unique short string.
+         title         : how the item appears.
+         sourceType    : Interview / Podcast / LinkedIn post / News / Conference talk
+         sourceName    : the publication or platform.
+         publishedDate : 'YYYY-MM' string.
+         verified      : 'YYYY-MM-DD' — when we last confirmed the link works.
+         url           : link to the publication or platform home (or page if confidently public).
+         company       : which portfolio company it relates to.
+         person        : the founder / executive featured (public-facing only).
+         summary       : 1–2 sentences in plain English. Do NOT quote large
+                         passages from the original — keep it short and your own words.
+         topics        : array of TAGS (must match CHALLENGE_OPTIONS / OFFERING_OPTIONS).
+
+       --- TO ADD ONE ---
+       Copy any entry, paste before the closing ];, edit fields. Save.
+       ------------------------------------------------------------ */
+
+    const KNOWLEDGE_ITEMS = [
+      {
+        id: 'k-bloisi-01',
+        title: 'Fabricio Bloisi on iFood\'s journey and Prosus\'s next chapter',
+        sourceType: 'Interview',
+        sourceName: 'Bloomberg',
+        publishedDate: '2024-07',
+        verified: '2025-09-12',
+        url: 'https://www.bloomberg.com/',
+        company: 'iFood',
+        person: 'Fabricio Bloisi',
+        summary: 'Bloisi reflects on building iFood from a Brazilian startup into a category leader and his transition to Prosus Group CEO.',
+        topics: ['marketplace-liquidity', 'latam-go-to-market', 'unit-economics', 'last-mile-logistics'],
+      },
+      {
+        id: 'k-swiggy-01',
+        title: 'Sriharsha Majety on Swiggy\'s path to public markets',
+        sourceType: 'News',
+        sourceName: 'Reuters',
+        publishedDate: '2024-11',
+        verified: '2025-09-15',
+        url: 'https://www.reuters.com/',
+        company: 'Swiggy',
+        person: 'Sriharsha Majety',
+        summary: 'Coverage of Swiggy\'s November 2024 NSE listing, including the company\'s quick-commerce expansion via Instamart.',
+        topics: ['ipo-readiness', 'india-go-to-market', 'unit-economics', 'last-mile-logistics'],
+      },
+      {
+        id: 'k-deliveryhero-01',
+        title: 'Niklas Östberg on running a global delivery network',
+        sourceType: 'Interview',
+        sourceName: 'Bloomberg',
+        publishedDate: '2024-05',
+        verified: '2025-08-20',
+        url: 'https://www.bloomberg.com/',
+        company: 'Delivery Hero',
+        person: 'Niklas Östberg',
+        summary: 'How Delivery Hero balances unit economics with growth across ~70 markets, and the role of MENA as a profit engine.',
+        topics: ['europe-expansion', 'unit-economics', 'gig-workforce', 'cross-border-payments'],
+      },
+      {
+        id: 'k-meesho-01',
+        title: 'Vidit Aatrey on building for Bharat',
+        sourceType: 'Podcast',
+        sourceName: 'YourStory',
+        publishedDate: '2024-04',
+        verified: '2025-09-15',
+        url: 'https://yourstory.com/',
+        company: 'Meesho',
+        person: 'Vidit Aatrey',
+        summary: 'Aatrey on serving non-metro India: zero-commission seller economics, value pricing, and last-mile depth.',
+        topics: ['india-go-to-market', 'merchant-supply', 'unit-economics', 'consumer-brand'],
+      },
+      {
+        id: 'k-pleo-01',
+        title: 'Jeppe Rindom on Pleo\'s shift toward profitability',
+        sourceType: 'Interview',
+        sourceName: 'Sifted',
+        publishedDate: '2024-06',
+        verified: '2025-08-30',
+        url: 'https://sifted.eu/',
+        company: 'Pleo',
+        person: 'Jeppe Rindom',
+        summary: 'How Pleo restructured to deliver predictable growth across 16 European markets while protecting cash burn.',
+        topics: ['europe-expansion', 'b2b-sales-motion', 'unit-economics', 'fintech-licensing'],
+      },
+      {
+        id: 'k-vtex-01',
+        title: 'Mariano Gomide on composable commerce',
+        sourceType: 'Conference talk',
+        sourceName: 'NRF / VTEX Day',
+        publishedDate: '2024-03',
+        verified: '2025-08-25',
+        url: 'https://vtex.com/',
+        company: 'VTEX',
+        person: 'Mariano Gomide de Faria',
+        summary: 'On winning enterprise retailers in Latin America and the case for composable architecture for global brands.',
+        topics: ['b2b-sales-motion', 'latam-go-to-market', 'merchant-supply'],
+      },
+      {
+        id: 'k-sharechat-01',
+        title: 'Ankush Sachdeva on regional-language content at scale',
+        sourceType: 'Interview',
+        sourceName: 'TechCrunch',
+        publishedDate: '2024-02',
+        verified: '2025-08-20',
+        url: 'https://techcrunch.com/',
+        company: 'ShareChat',
+        person: 'Ankush Sachdeva',
+        summary: 'Sachdeva discusses ShareChat / Moj\'s creator economy across 15+ Indian languages and the ML stack behind it.',
+        topics: ['creator-content-ops', 'india-go-to-market', 'consumer-brand', 'ai-product'],
+      },
+      {
+        id: 'k-payu-01',
+        title: 'PayU on cross-border payments in growth markets',
+        sourceType: 'News',
+        sourceName: 'Reuters',
+        publishedDate: '2024-08',
+        verified: '2025-09-01',
+        url: 'https://www.reuters.com/',
+        company: 'PayU',
+        person: 'Mario Shiliashki',
+        summary: 'PayU\'s strategy across Latin America, India, and Africa, including its India payment-aggregator licensing journey.',
+        topics: ['cross-border-payments', 'fintech-licensing', 'latam-go-to-market', 'india-go-to-market', 'embedded-payments'],
+      },
+      {
+        id: 'k-sinch-01',
+        title: 'Sinch on conversational AI for enterprise messaging',
+        sourceType: 'News',
+        sourceName: 'Bloomberg',
+        publishedDate: '2024-09',
+        verified: '2025-09-01',
+        url: 'https://www.bloomberg.com/',
+        company: 'Sinch',
+        person: 'Laurinda Pang',
+        summary: 'How Sinch is layering generative AI on top of its CPaaS to differentiate against Twilio and regional carriers.',
+        topics: ['ai-product', 'b2b-sales-motion'],
+      },
+      {
+        id: 'k-honor-01',
+        title: 'Seth Sternberg on scaling care-at-home post Home Instead',
+        sourceType: 'Interview',
+        sourceName: 'Forbes',
+        publishedDate: '2024-04',
+        verified: '2025-08-12',
+        url: 'https://www.forbes.com/',
+        company: 'Honor Technology',
+        person: 'Seth Sternberg',
+        summary: 'Sternberg on integrating Home Instead\'s 1,200+ franchises with Honor\'s tech platform, and the unit-economics challenge of senior care.',
+        topics: ['health-regulation', 'b2b-sales-motion', 'unit-economics'],
+      },
+      {
+        id: 'k-pharmeasy-01',
+        title: 'Siddharth Shah on India\'s digital health margins',
+        sourceType: 'News',
+        sourceName: 'TechCrunch',
+        publishedDate: '2024-07',
+        verified: '2025-09-05',
+        url: 'https://techcrunch.com/',
+        company: 'PharmEasy (API Holdings)',
+        person: 'Siddharth Shah',
+        summary: 'PharmEasy\'s consolidation play (Thyrocare) and the long road to sustainable margins in Indian e-pharmacy.',
+        topics: ['health-regulation', 'india-go-to-market', 'unit-economics', 'health-distribution'],
+      },
+      {
+        id: 'k-carousell-01',
+        title: 'Quek Siu Rui on recommerce as Southeast Asia\'s next big category',
+        sourceType: 'Interview',
+        sourceName: 'The Information',
+        publishedDate: '2024-05',
+        verified: '2025-08-18',
+        url: 'https://www.theinformation.com/',
+        company: 'Carousell',
+        person: 'Quek Siu Rui',
+        summary: 'Quek on building eight-country defensibility through brand and trust in second-hand goods.',
+        topics: ['classifieds-engine', 'seasia-go-to-market', 'consumer-brand', 'merchant-supply'],
+      },
+    ];
+
+
+    /* ============================================================
+       === 5. INTRO TEMPLATES ====================================
+       ============================================================
+       Editable warm-intro templates used in Connection Playbook.
+       The text in {curlyBraces} gets replaced automatically with
+       real values when the founder reads the template. You can
+       edit any of the surrounding words. Keep the placeholders
+       intact unless you also remove them from the code.
+
+       Available placeholders:
+         {founderName}     — the user's name (from onboarding).
+         {userCompany}     — the user's company.
+         {userSector}      — the user's sector.
+         {targetCompany}   — the target company name.
+         {targetSector}    — the target company's sector.
+         {targetRegion}    — the target company's region.
+         {matchType}       — Customer fit / Distribution / Tech & data / Geographic / Mentor.
+         {sharedContext}   — the strongest matching reason.
+       ------------------------------------------------------------ */
+
+    const INTRO_TEMPLATES = {
+      // The default warm-intro template, written to be sent VIA your
+      // Prosus partner (not cold) — this is required by the spec.
+      warmIntroEmail:
+`Hi [Prosus partner],
+
+Hope you're well. I'd love a warm intro to the team at {targetCompany} — there's a clear {matchType} angle between us and them: {sharedContext}.
+
+A bit of context: I run {userCompany}, a {userSector} business. The shortest version of why we'd be a good conversation for {targetCompany}:
+  •  Shared problem space: {sharedContext}
+  •  Specifically I'd hope to {askLine}
+  •  And we could offer {offerLine} in return.
+
+Happy to draft something if it's easier — or feel free to forward this. No rush; would love to make it count.
+
+Thanks,
+{founderName}`,
+
+      // The version when the match is purely a "learn from them" situation.
+      mentorIntroEmail:
+`Hi [Prosus partner],
+
+I've been digging through how {targetCompany} solved {sharedContext} and would learn a huge amount from a 30-minute call with their team. I'm not pitching anything — I'd love to compare notes and learn from how they approached it.
+
+Quick context on me: {founderName}, {userCompany} ({userSector}). We're working through a similar problem right now and {targetCompany}\'s public commentary is the closest analogue I've found inside the portfolio.
+
+If you can think of the right person to ping on their side, that would be ideal. Otherwise happy to take any pointers.
+
+Thanks,
+{founderName}`,
+    };
+
+
+    /* ============================================================
+       === 6. HELPER FUNCTIONS ===================================
+       ============================================================
+       Pure functions that turn DATA into MATCHES.
+       Each function is heavily commented so a non-coder can read
+       through the logic step by step.
+       ------------------------------------------------------------ */
+
+    /**
+     * lookupCompany
+     * --------------
+     * Given a company id, return the full company object.
+     * Used everywhere we have just the id and need details.
+     */
+    function lookupCompany(id) {
+      return PORTFOLIO_COMPANIES.find(function (c) { return c.id === id; }) || null;
+    }
+
+    /**
+     * intersectTags
+     * --------------
+     * Given two arrays of tag strings, return the values that appear
+     * in BOTH. Used to find shared topics between the user and a
+     * portfolio company.
+     */
+    function intersectTags(a, b) {
+      if (!a || !b) return [];
+      return a.filter(function (tag) { return b.indexOf(tag) !== -1; });
+    }
+
+    /**
+     * labelForTag
+     * --------------
+     * Tags are short codes (like 'last-mile-logistics'). The user
+     * shouldn\'t see those — they should see the friendly label
+     * (like 'Last-mile logistics & delivery ops'). This function
+     * looks up the friendly label, falling back to the tag itself.
+     */
+    function labelForTag(tag) {
+      const fromChallenge = CHALLENGE_OPTIONS.find(function (o) { return o.tag === tag; });
+      if (fromChallenge) return fromChallenge.label;
+      const fromOffering = OFFERING_OPTIONS.find(function (o) { return o.tag === tag; });
+      if (fromOffering) return fromOffering.label;
+      return tag;
+    }
+
+    /**
+     * scoreCompanyForUser
+     * --------------------
+     * Step 1: How much overlap is there between the user\'s growth
+     *         CHALLENGES and the company\'s EXPERTISE? (mentor angle)
+     * Step 2: How much overlap is there between the user\'s OFFERINGS
+     *         and the company\'s NEEDS? (partner angle)
+     * Step 3: Are they in the same region? (geographic angle)
+     * Step 4: Does the user sell B2B and the company is in a sector
+     *         that often buys their kind of product? (customer fit)
+     *
+     * We then add the points up to a "Synergy Score" between 0 and 100
+     * (capped). We also collect human-readable RATIONALES so the UI
+     * can show "WHY" the match exists — never a black-box score.
+     *
+     * Returns:
+     *   {
+     *     score: number,
+     *     rationales: [{type, label, tags}],
+     *     primaryType: 'Customer fit' | 'Distribution partner' | ...
+     *   }
+     */
+    function scoreCompanyForUser(user, company) {
+      const rationales = [];
+
+      // --- mentor / learning overlap ---
+      const challengeOverlap = intersectTags(user.challenges, company.expertise);
+      const mentorPoints = challengeOverlap.length * 18;
+      if (challengeOverlap.length) {
+        rationales.push({
+          type: 'Mentor',
+          label: 'Has solved problems you\'re working on',
+          tags: challengeOverlap,
+          points: mentorPoints,
+        });
+      }
+
+      // --- partner: my offerings cover their needs ---
+      const offerNeedOverlap = intersectTags(user.offerings, company.needs);
+      const partnerPoints = offerNeedOverlap.length * 22;
+      if (offerNeedOverlap.length) {
+        rationales.push({
+          type: 'Tech or data partner',
+          label: 'Could benefit from what you offer',
+          tags: offerNeedOverlap,
+          points: partnerPoints,
+        });
+      }
+
+      // --- partner: their expertise covers my offerings (distribution) ---
+      // This catches cases where the COMPANY can distribute / scale FOR
+      // the user (e.g. user offers a B2B product, company has a relevant
+      // customer base or geographic reach).
+      const distOverlap = intersectTags(user.offerings, company.expertise);
+      const distPoints = distOverlap.length * 14;
+      if (distOverlap.length) {
+        rationales.push({
+          type: 'Distribution partner',
+          label: 'Has the reach you can build on',
+          tags: distOverlap,
+          points: distPoints,
+        });
+      }
+
+      // --- geographic overlap ---
+      let geoPoints = 0;
+      if (user.region && company.region && user.region === company.region) {
+        geoPoints += 8;
+        rationales.push({
+          type: 'Geographic expansion partner',
+          label: 'Operates in your home region — peer market dynamics',
+          tags: [],
+          points: 8,
+        });
+      } else if (user.expandTo && company.region && user.expandTo === company.region) {
+        geoPoints += 18;
+        rationales.push({
+          type: 'Geographic expansion partner',
+          label: 'Operates in a region you want to expand into (' + company.region + ')',
+          tags: [],
+          points: 18,
+        });
+      }
+
+      // --- customer fit (rough heuristic) ---
+      // If the user runs a B2B business, any portfolio company can
+      // plausibly be a customer or potential channel. We add a small
+      // boost when their sector is one that typically buys what the
+      // user offers.
+      let customerPoints = 0;
+      if (user.customerType === 'B2B' || user.customerType === 'B2B2C') {
+        // any sector match is at least neutral; we don\'t want to be
+        // noisy here, so only mark this when there\'s ALSO some other
+        // signal.
+        if (rationales.length > 0) {
+          customerPoints = 6;
+          rationales.push({
+            type: 'Customer fit',
+            label: company.name + ' could be a B2B customer or channel for you',
+            tags: [],
+            points: customerPoints,
+          });
+        }
+      }
+
+      // --- aggregate ---
+      let total = mentorPoints + partnerPoints + distPoints + geoPoints + customerPoints;
+      if (total > 100) total = 100;
+
+      // Pick the rationale with the most points to label the match.
+      let primaryType = 'Peer';
+      let topPoints = -1;
+      rationales.forEach(function (r) {
+        if (r.points > topPoints) {
+          topPoints = r.points;
+          primaryType = r.type;
+        }
+      });
+
+      return { score: total, rationales: rationales, primaryType: primaryType };
+    }
+
+    /**
+     * filterAndScoreCompanies
+     * ------------------------
+     * Run scoreCompanyForUser over every portfolio company, then keep
+     * only the ones that scored above zero, sorted high → low.
+     */
+    function filterAndScoreCompanies(user, companies) {
+      return companies
+        .map(function (c) {
+          return Object.assign({}, c, { match: scoreCompanyForUser(user, c) });
+        })
+        .filter(function (c) { return c.match.score > 0; })
+        .sort(function (a, b) { return b.match.score - a.match.score; });
+    }
+
+    /**
+     * mentorCandidates
+     * -----------------
+     * Same idea but specifically for FindMentors — only surface
+     * companies that overlap with the user\'s CHALLENGES (expertise
+     * angle), rank by mentor strength.
+     */
+    function mentorCandidates(user, companies) {
+      return companies
+        .map(function (c) {
+          const overlap = intersectTags(user.challenges, c.expertise);
+          return { company: c, overlap: overlap, score: overlap.length };
+        })
+        .filter(function (m) { return m.score > 0; })
+        .sort(function (a, b) { return b.score - a.score; });
+    }
+
+    /**
+     * fillTemplate
+     * --------------
+     * Replace every {placeholder} in the template string with the
+     * matching value from the values object. Anything not found is
+     * left as-is so the user notices and edits it.
+     */
+    function fillTemplate(template, values) {
+      return template.replace(/\{(\w+)\}/g, function (match, key) {
+        if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
+          return values[key];
+        }
+        return match;
+      });
+    }
+
+    /**
+     * generatePlaybook
+     * -----------------
+     * For a given user + target company, build:
+     *   - the warm intro email (filled-in template)
+     *   - three tailored talking points
+     *   - three suggested first-call questions
+     *
+     * The talking points and questions are generated from the
+     * matching tags so they feel specific, not generic.
+     */
+    function generatePlaybook(user, company) {
+      const match = scoreCompanyForUser(user, company);
+      const isMentor = match.primaryType === 'Mentor';
+
+      // Build the strongest "why" explanation in plain English.
+      const mainRationale = match.rationales[0] || {
+        label: 'You and ' + company.name + ' both operate in the Prosus family of high-growth consumer-internet businesses.',
+        tags: [],
+      };
+
+      const sharedContext = mainRationale.label.toLowerCase().replace(/^./, function (c) { return c.toLowerCase(); });
+
+      // Friendly labels for any matching tags.
+      const sharedTags = (mainRationale.tags || []).map(labelForTag);
+
+      // Choose the right template.
+      const baseTemplate = isMentor ? INTRO_TEMPLATES.mentorIntroEmail : INTRO_TEMPLATES.warmIntroEmail;
+
+      // Reasonable defaults for the "ask" and "offer" lines.
+      const askLine = isMentor
+        ? 'compare notes on how they approached the problem'
+        : 'explore a concrete pilot around ' + (sharedTags[0] || 'what we both care about');
+      const offerLine = (user.offerings && user.offerings.length)
+        ? user.offerings.map(labelForTag).slice(0, 2).join(' and ')
+        : 'introductions, market context, and a willing testbed';
+
+      const email = fillTemplate(baseTemplate, {
+        founderName: user.founderName || '[your name]',
+        userCompany: user.companyName || '[your company]',
+        userSector: user.sector || '[your sector]',
+        targetCompany: company.name,
+        targetSector: company.sector,
+        targetRegion: company.region,
+        matchType: match.primaryType,
+        sharedContext: sharedContext,
+        askLine: askLine,
+        offerLine: offerLine,
+      });
+
+      // Three talking points.
+      const talkingPoints = [];
+      if (sharedTags.length) {
+        talkingPoints.push(
+          'Your shared territory: ' + sharedTags.join(', ') + '. Open with the specific question you\'ve been wrestling with.'
+        );
+      } else {
+        talkingPoints.push(
+          'You both operate inside the Prosus family of consumer-internet businesses — anchor on a concrete shared problem rather than the affiliation itself.'
+        );
+      }
+      talkingPoints.push(
+        'Acknowledge ' + company.name + '\'s market position in ' + company.region + ' (' + company.sector + ') and what specifically caught your attention recently.'
+      );
+      if (isMentor) {
+        talkingPoints.push(
+          'Make it clearly a "learn from you" call, not a sales call. End with how you might return the favour.'
+        );
+      } else {
+        talkingPoints.push(
+          'Sketch a specific 30-day pilot or working session you could run together. Not a generic partnership.'
+        );
+      }
+
+      // Three first-call questions.
+      const questions = [];
+      if (sharedTags.length) {
+        questions.push('How did your team think about ' + sharedTags[0].toLowerCase() + ' in the early days vs. now? What changed?');
+        if (sharedTags[1]) {
+          questions.push('On ' + sharedTags[1].toLowerCase() + ' — where did you go wrong first, and what would you do differently?');
+        } else {
+          questions.push('What\'s the metric you obsess over today that you would have ignored two years ago?');
+        }
+      } else {
+        questions.push('What\'s the most non-obvious lesson from scaling ' + company.name + ' in ' + company.region + '?');
+        questions.push('What\'s the metric you obsess over today that you would have ignored two years ago?');
+      }
+      questions.push(
+        isMentor
+          ? 'If we tried what you did, what would you tell us to be most cautious about?'
+          : 'If we ran a 30-day pilot together, what would success look like for you?'
+      );
+
+      return {
+        email: email,
+        talkingPoints: talkingPoints,
+        questions: questions,
+        match: match,
+      };
+    }
+
+
+    /* ============================================================
+       === 7. SHARED UI COMPONENTS ===============================
+       ============================================================
+       Small re-usable bits used across the feature screens.
+       ------------------------------------------------------------ */
+
+    // A small coloured pill / badge.
+    function Badge(props) {
+      const tone = props.tone || 'neutral';
+      const tones = {
+        neutral: 'bg-stone-100 text-stone-700 border-stone-200',
+        accent:  'bg-orange-50 text-orange-800 border-orange-200',
+        navy:    'bg-slate-100 text-slate-700 border-slate-200',
+        soft:    'bg-amber-50 text-amber-900 border-amber-200',
+      };
+      return (
+        <span className={'inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ' + (tones[tone] || tones.neutral) + ' ' + (props.className || '')}>
+          {props.children}
+        </span>
+      );
+    }
+
+    // A simple white card container.
+    function Card(props) {
+      return (
+        <div
+          className={
+            'bg-white border border-[#E8E2D5] rounded-xl shadow-[0_1px_0_0_rgba(15,26,46,0.04)] ' +
+            (props.hover ? 'transition-shadow hover:shadow-md ' : '') +
+            (props.className || '')
+          }
+        >
+          {props.children}
+        </div>
+      );
+    }
+
+    // A subtle section header used inside cards / lists.
+    function SectionLabel(props) {
+      return (
+        <div className="text-[11px] tracking-[0.14em] uppercase font-semibold text-stone-500 mb-2">
+          {props.children}
+        </div>
+      );
+    }
+
+    // Citation block at the bottom of a company card.
+    function SourceList(props) {
+      const sources = props.sources || [];
+      if (!sources.length) return null;
+      return (
+        <div className="mt-3 pt-3 border-t border-[#EFE9DD]">
+          <SectionLabel>Sources</SectionLabel>
+          <ul className="space-y-1">
+            {sources.map(function (s, i) {
+              return (
+                <li key={i} className="text-xs text-stone-600 flex items-start gap-1.5">
+                  <span className="mt-1 inline-block w-1 h-1 rounded-full bg-stone-400 shrink-0" />
+                  <span>
+                    <span className="font-medium text-stone-700">{s.type}:</span>{' '}
+                    {s.url ? (
+                      <a href={s.url} target="_blank" rel="noopener noreferrer" className="underline decoration-stone-300 hover:decoration-orange-400">
+                        {s.name}
+                      </a>
+                    ) : (
+                      <span>{s.name}</span>
+                    )}
+                    {s.title ? <span> — {s.title}</span> : null}
+                    {s.verified ? <span className="text-stone-400"> · last verified {s.verified}</span> : null}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      );
+    }
+
+    // The full company card used in many screens.
+    // Props: company, onAddToShortlist, onRemoveFromShortlist, isShortlisted,
+    //        onOpenPlaybook, matchInfo (optional — { score, primaryType, rationales }),
+    //        compact (boolean)
+    function CompanyCard(props) {
+      const c = props.company;
+      const m = props.matchInfo;
+      return (
+        <Card hover className="p-5 flex flex-col fade-in">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-display text-xl text-[#0F1A2E]">{c.name}</h3>
+                <Badge tone="navy">{c.sector}</Badge>
+                <Badge tone="neutral">{c.region}</Badge>
+                {c.stage ? <Badge tone="neutral">{c.stage}</Badge> : null}
+              </div>
+              <p className="text-sm text-[#5A6478] mt-1.5 leading-relaxed">{c.description}</p>
+            </div>
+            {m ? (
+              <div className="text-right shrink-0">
+                <div className="text-[11px] uppercase tracking-wider text-stone-500">Synergy</div>
+                <div className="font-display text-2xl text-[#C2410C] leading-none mt-0.5">{m.score}</div>
+                <Badge tone="accent" className="mt-1">{m.primaryType}</Badge>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Founders + HQ row */}
+          <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
+            <div>
+              <SectionLabel>HQ</SectionLabel>
+              <div className="text-[#0F1A2E]">{c.hq}</div>
+            </div>
+            <div>
+              <SectionLabel>Founders / Leadership (public)</SectionLabel>
+              <div className="text-[#0F1A2E]">{c.founders.join(' · ')}</div>
+            </div>
+          </div>
+
+          {/* Metrics */}
+          {c.metrics && c.metrics.length ? (
+            <div className="mt-4">
+              <SectionLabel>Public metrics</SectionLabel>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                {c.metrics.map(function (mt, i) {
+                  return (
+                    <li key={i} className="text-sm text-[#0F1A2E] flex items-baseline gap-2">
+                      <span className="font-medium">{mt.value}</span>
+                      <span className="text-stone-500">{mt.label}</span>
+                      {mt.illustrative ? (
+                        <span className="text-[10px] uppercase tracking-wider text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded">illustrative</span>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
+
+          {/* Match rationales */}
+          {m && m.rationales && m.rationales.length ? (
+            <div className="mt-4 bg-amber-50/50 border border-amber-100 rounded-lg p-3">
+              <SectionLabel>Why this is a match</SectionLabel>
+              <ul className="space-y-1.5">
+                {m.rationales.map(function (r, i) {
+                  return (
+                    <li key={i} className="text-sm text-[#0F1A2E] flex items-start gap-2">
+                      <span className="mt-0.5 shrink-0">
+                        <Badge tone="accent">{r.type}</Badge>
+                      </span>
+                      <span>
+                        {r.label}
+                        {r.tags && r.tags.length ? (
+                          <span className="text-stone-500"> — {r.tags.map(labelForTag).join(', ').toLowerCase()}</span>
+                        ) : null}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
+
+          {/* Sources */}
+          <SourceList sources={c.sources} />
+
+          {/* Action row */}
+          <div className="mt-4 flex items-center gap-2 flex-wrap">
+            {props.onOpenPlaybook ? (
+              <button
+                onClick={function () { props.onOpenPlaybook(c.id); }}
+                className="text-sm font-medium text-white bg-[#C2410C] hover:bg-[#9A330A] px-3.5 py-1.5 rounded-md transition-colors"
+              >
+                Get connection playbook
+              </button>
+            ) : null}
+            {props.onAddToShortlist ? (
+              props.isShortlisted ? (
+                <button
+                  onClick={function () { props.onRemoveFromShortlist(c.id); }}
+                  className="text-sm font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 px-3.5 py-1.5 rounded-md transition-colors"
+                >
+                  Remove from shortlist
+                </button>
+              ) : (
+                <button
+                  onClick={function () { props.onAddToShortlist(c.id); }}
+                  className="text-sm font-medium text-[#0F1A2E] bg-white border border-[#0F1A2E]/15 hover:border-[#0F1A2E]/40 px-3.5 py-1.5 rounded-md transition-colors"
+                >
+                  Save to shortlist
+                </button>
+              )
+            ) : null}
+          </div>
+        </Card>
+      );
+    }
+
+
+    /* ============================================================
+       === 8. FEATURE COMPONENTS =================================
+       ============================================================
+       Each of the six feature screens lives in its own component.
+       Removing a feature = removing it from SECTIONS at the bottom.
+       ------------------------------------------------------------ */
+
+
+    /* ---- 8a. PortfolioMap --------------------------------------
+       What this section does:
+         Shows every non-edtech Prosus / Naspers-linked company in a
+         filterable card grid. The founder can browse by sector,
+         region, stage, and business model.
+
+       What the user sees:
+         - A row of filter chips at the top.
+         - A search box to find a company by name.
+         - A grid of company cards, each with description, founders,
+           public metrics, and source citations.
+         - A "Save to shortlist" / "Get connection playbook" pair of
+           buttons on every card.
+
+       Data it uses:
+         - PORTFOLIO_COMPANIES (the data block above).
+         - the user\'s shortlist (passed in as a prop).
+       ------------------------------------------------------------ */
+    function PortfolioMap(props) {
+      // What the user has typed into the search box.
+      const [query, setQuery] = React.useState('');
+      // Which sector / region / stage / model is selected ('' means all).
+      const [sector, setSector] = React.useState('');
+      const [region, setRegion] = React.useState('');
+      const [stage, setStage] = React.useState('');
+      const [model, setModel] = React.useState('');
+
+      // Run the filters. useMemo means we only re-run when inputs change.
+      const filtered = React.useMemo(function () {
+        return PORTFOLIO_COMPANIES.filter(function (c) {
+          if (sector && c.sector !== sector) return false;
+          if (region && c.region !== region) return false;
+          if (stage && c.stage !== stage) return false;
+          if (model && c.businessModel !== model) return false;
+          if (query) {
+            const q = query.toLowerCase();
+            const haystack = (c.name + ' ' + c.description + ' ' + c.founders.join(' ') + ' ' + c.hq).toLowerCase();
+            if (haystack.indexOf(q) === -1) return false;
+          }
+          return true;
+        });
+      }, [query, sector, region, stage, model]);
+
+      const isShortlisted = function (id) {
+        return props.shortlist.some(function (s) { return s.companyId === id; });
+      };
+
+      return (
+        <div className="space-y-6">
+          <header>
+            <h2 className="font-display text-3xl text-[#0F1A2E]">Portfolio Map</h2>
+            <p className="text-[#5A6478] mt-1 max-w-3xl">
+              Browse non-edtech Prosus and Naspers-linked companies. Each card surfaces what\'s public — descriptions,
+              metrics, founder names where they\'re published, and the news / LinkedIn links we used. Re-verify the
+              "last verified" dates if anything looks off.
+            </p>
+          </header>
+
+          {/* Filters */}
+          <Card className="p-4">
+            <div className="flex flex-wrap gap-3">
+              <input
+                value={query}
+                onChange={function (e) { setQuery(e.target.value); }}
+                placeholder="Search company, founder, HQ…"
+                className="flex-1 min-w-[200px] px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+              />
+              <FilterSelect label="Sector" value={sector} options={SECTORS} onChange={setSector} />
+              <FilterSelect label="Region" value={region} options={REGIONS} onChange={setRegion} />
+              <FilterSelect label="Stage" value={stage} options={STAGES} onChange={setStage} />
+              <FilterSelect label="Model" value={model} options={BUSINESS_MODELS} onChange={setModel} />
+              {(query || sector || region || stage || model) ? (
+                <button
+                  onClick={function () { setQuery(''); setSector(''); setRegion(''); setStage(''); setModel(''); }}
+                  className="text-sm text-stone-600 hover:text-[#C2410C] underline decoration-dotted underline-offset-4"
+                >
+                  Reset
+                </button>
+              ) : null}
+            </div>
+            <div className="text-xs text-stone-500 mt-2">
+              Showing <span className="font-semibold text-[#0F1A2E]">{filtered.length}</span> of {PORTFOLIO_COMPANIES.length} companies. Edtech is intentionally excluded.
+            </div>
+          </Card>
+
+          {/* Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {filtered.map(function (c) {
+              return (
+                <CompanyCard
+                  key={c.id}
+                  company={c}
+                  isShortlisted={isShortlisted(c.id)}
+                  onAddToShortlist={props.addToShortlist}
+                  onRemoveFromShortlist={props.removeFromShortlist}
+                  onOpenPlaybook={props.openPlaybook}
+                />
+              );
+            })}
+          </div>
+
+          {!filtered.length ? (
+            <Card className="p-10 text-center">
+              <p className="text-[#5A6478]">No companies match those filters. Try resetting or broadening the search.</p>
+            </Card>
+          ) : null}
+        </div>
+      );
+    }
+
+    // Small re-usable filter dropdown.
+    function FilterSelect(props) {
+      return (
+        <select
+          value={props.value}
+          onChange={function (e) { props.onChange(e.target.value); }}
+          className="px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+        >
+          <option value="">All {props.label}</option>
+          {props.options.map(function (o) {
+            return <option key={o} value={o}>{o}</option>;
+          })}
+        </select>
+      );
+    }
+
+
+    /* ---- 8b. FindCollaborators ---------------------------------
+       What this section does:
+         Captures the founder\'s context (sector, customer profile,
+         GTM motion, top-3 challenges, top-3 offerings) and surfaces
+         a ranked list of portfolio companies with a Synergy Score
+         and a clear, categorised reason for each.
+
+       What the user sees:
+         - A short onboarding form (their first time).
+         - A "Refine my profile" button afterwards.
+         - A ranked list of matches with score, the strongest match
+           type (Customer fit / Distribution / Tech & data /
+           Geographic), and a "Get connection playbook" button.
+
+       Data it uses:
+         - userProfile (from App-level state).
+         - PORTFOLIO_COMPANIES.
+       ------------------------------------------------------------ */
+    function FindCollaborators(props) {
+      const profile = props.userProfile;
+      const setProfile = props.setUserProfile;
+
+      // Has the user filled in enough to show matches?
+      const ready = profile.sector && profile.region && (profile.challenges.length > 0 || profile.offerings.length > 0);
+
+      // Local state: are we showing the form right now?
+      const [editing, setEditing] = React.useState(!ready);
+
+      const matches = React.useMemo(function () {
+        if (!ready) return [];
+        return filterAndScoreCompanies(profile, PORTFOLIO_COMPANIES);
+      }, [profile, ready]);
+
+      const isShortlisted = function (id) {
+        return props.shortlist.some(function (s) { return s.companyId === id; });
+      };
+
+      return (
+        <div className="space-y-6">
+          <header>
+            <h2 className="font-display text-3xl text-[#0F1A2E]">Find collaborators</h2>
+            <p className="text-[#5A6478] mt-1 max-w-3xl">
+              Tell us what you do, what you\'re working on, and what you can offer. We\'ll rank Prosus portfolio companies by
+              who\'s most likely to be a meaningful peer, partner, customer, or distribution match — with a clear reason for each.
+            </p>
+          </header>
+
+          {(editing || !ready) ? (
+            <OnboardingForm profile={profile} setProfile={setProfile} onDone={function () { setEditing(false); }} />
+          ) : (
+            <Card className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <SectionLabel>Your profile</SectionLabel>
+                  <div className="text-sm text-[#0F1A2E] flex flex-wrap gap-2 items-center">
+                    <span className="font-medium">{profile.companyName || 'Your company'}</span>
+                    <span className="text-stone-400">·</span>
+                    <Badge tone="navy">{profile.sector}</Badge>
+                    <Badge tone="neutral">{profile.region}</Badge>
+                    {profile.customerType ? <Badge tone="neutral">{profile.customerType}</Badge> : null}
+                    {profile.gtmMotion ? <Badge tone="neutral">{profile.gtmMotion}</Badge> : null}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                    <div>
+                      <SectionLabel>Your top growth challenges</SectionLabel>
+                      <div className="flex flex-wrap gap-1.5">
+                        {profile.challenges.length ? profile.challenges.map(function (t) {
+                          return <Badge key={t} tone="soft">{labelForTag(t)}</Badge>;
+                        }) : <span className="text-sm text-stone-500">(none yet)</span>}
+                      </div>
+                    </div>
+                    <div>
+                      <SectionLabel>What you can offer others</SectionLabel>
+                      <div className="flex flex-wrap gap-1.5">
+                        {profile.offerings.length ? profile.offerings.map(function (t) {
+                          return <Badge key={t} tone="soft">{labelForTag(t)}</Badge>;
+                        }) : <span className="text-sm text-stone-500">(none yet)</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={function () { setEditing(true); }}
+                  className="text-sm text-[#0F1A2E] bg-white border border-[#0F1A2E]/15 hover:border-[#0F1A2E]/40 px-3.5 py-1.5 rounded-md transition-colors"
+                >
+                  Refine profile
+                </button>
+              </div>
+            </Card>
+          )}
+
+          {ready && !editing ? (
+            <div className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <h3 className="font-display text-xl text-[#0F1A2E]">{matches.length} matches across the portfolio</h3>
+                <span className="text-xs text-stone-500">Ranked by Synergy Score</span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {matches.map(function (c) {
+                  return (
+                    <CompanyCard
+                      key={c.id}
+                      company={c}
+                      matchInfo={c.match}
+                      isShortlisted={isShortlisted(c.id)}
+                      onAddToShortlist={props.addToShortlist}
+                      onRemoveFromShortlist={props.removeFromShortlist}
+                      onOpenPlaybook={props.openPlaybook}
+                    />
+                  );
+                })}
+              </div>
+
+              {!matches.length ? (
+                <Card className="p-10 text-center text-[#5A6478]">
+                  No matches yet. Try adding a couple more challenges or offerings.
+                </Card>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      );
+    }
+
+    // Onboarding form — used by FindCollaborators.
+    function OnboardingForm(props) {
+      const profile = props.profile;
+      const setProfile = props.setProfile;
+
+      // Helper to update one field at a time.
+      const updateField = function (key, value) {
+        setProfile(function (prev) {
+          const next = Object.assign({}, prev);
+          next[key] = value;
+          return next;
+        });
+      };
+
+      // Helper to toggle a tag in an array (max 3).
+      const toggleTag = function (key, tag) {
+        setProfile(function (prev) {
+          const list = prev[key] || [];
+          let next;
+          if (list.indexOf(tag) !== -1) {
+            next = list.filter(function (t) { return t !== tag; });
+          } else if (list.length >= 3) {
+            next = list; // already at max — ignore
+          } else {
+            next = list.concat(tag);
+          }
+          return Object.assign({}, prev, { [key]: next });
+        });
+      };
+
+      const ready = profile.sector && profile.region && (profile.challenges.length > 0 || profile.offerings.length > 0);
+
+      return (
+        <Card className="p-6">
+          <h3 className="font-display text-xl text-[#0F1A2E] mb-1">Tell us about you</h3>
+          <p className="text-sm text-[#5A6478] mb-5">
+            This stays in your browser only — nothing is sent anywhere. Skip anything you don\'t want to share.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label="Your name (optional)">
+              <input
+                value={profile.founderName || ''}
+                onChange={function (e) { updateField('founderName', e.target.value); }}
+                className="w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+                placeholder="e.g., Priya Sharma"
+              />
+            </Field>
+            <Field label="Your company">
+              <input
+                value={profile.companyName || ''}
+                onChange={function (e) { updateField('companyName', e.target.value); }}
+                className="w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+                placeholder="e.g., Newco"
+              />
+            </Field>
+            <Field label="Sector">
+              <select
+                value={profile.sector || ''}
+                onChange={function (e) { updateField('sector', e.target.value); }}
+                className="w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+              >
+                <option value="">Pick one</option>
+                {SECTORS.map(function (s) { return <option key={s} value={s}>{s}</option>; })}
+              </select>
+            </Field>
+            <Field label="Home region">
+              <select
+                value={profile.region || ''}
+                onChange={function (e) { updateField('region', e.target.value); }}
+                className="w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+              >
+                <option value="">Pick one</option>
+                {REGIONS.map(function (r) { return <option key={r} value={r}>{r}</option>; })}
+              </select>
+            </Field>
+            <Field label="Customer profile">
+              <select
+                value={profile.customerType || ''}
+                onChange={function (e) { updateField('customerType', e.target.value); }}
+                className="w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+              >
+                <option value="">Pick one</option>
+                {CUSTOMER_TYPES.map(function (c) { return <option key={c} value={c}>{c}</option>; })}
+              </select>
+            </Field>
+            <Field label="Go-to-market motion">
+              <select
+                value={profile.gtmMotion || ''}
+                onChange={function (e) { updateField('gtmMotion', e.target.value); }}
+                className="w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+              >
+                <option value="">Pick one</option>
+                {GTM_MOTIONS.map(function (m) { return <option key={m} value={m}>{m}</option>; })}
+              </select>
+            </Field>
+            <Field label="A region you'd like to expand into (optional)">
+              <select
+                value={profile.expandTo || ''}
+                onChange={function (e) { updateField('expandTo', e.target.value); }}
+                className="w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+              >
+                <option value="">No specific region</option>
+                {REGIONS.map(function (r) { return <option key={r} value={r}>{r}</option>; })}
+              </select>
+            </Field>
+          </div>
+
+          <div className="mt-6">
+            <SectionLabel>Your top 3 growth challenges (pick up to 3)</SectionLabel>
+            <div className="flex flex-wrap gap-1.5">
+              {CHALLENGE_OPTIONS.map(function (opt) {
+                const active = profile.challenges.indexOf(opt.tag) !== -1;
+                return (
+                  <button
+                    key={opt.tag}
+                    onClick={function () { toggleTag('challenges', opt.tag); }}
+                    className={
+                      'text-xs px-2.5 py-1 rounded-full border transition-colors ' +
+                      (active ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-white border-[#E8E2D5] text-stone-700 hover:border-[#C2410C]/50')
+                    }
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-xs text-stone-500 mt-1">{profile.challenges.length}/3 picked.</div>
+          </div>
+
+          <div className="mt-5">
+            <SectionLabel>Top 3 things you can offer others (pick up to 3)</SectionLabel>
+            <div className="flex flex-wrap gap-1.5">
+              {OFFERING_OPTIONS.map(function (opt) {
+                const active = profile.offerings.indexOf(opt.tag) !== -1;
+                return (
+                  <button
+                    key={opt.tag}
+                    onClick={function () { toggleTag('offerings', opt.tag); }}
+                    className={
+                      'text-xs px-2.5 py-1 rounded-full border transition-colors ' +
+                      (active ? 'bg-orange-100 border-orange-300 text-orange-900' : 'bg-white border-[#E8E2D5] text-stone-700 hover:border-[#C2410C]/50')
+                    }
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="text-xs text-stone-500 mt-1">{profile.offerings.length}/3 picked.</div>
+          </div>
+
+          <div className="mt-6 flex items-center gap-3">
+            <button
+              disabled={!ready}
+              onClick={props.onDone}
+              className={
+                'text-sm font-medium px-4 py-2 rounded-md transition-colors ' +
+                (ready ? 'text-white bg-[#C2410C] hover:bg-[#9A330A]' : 'text-stone-400 bg-stone-100 cursor-not-allowed')
+              }
+            >
+              See my matches →
+            </button>
+            <span className="text-xs text-stone-500">Sector + region + at least one challenge or offering required.</span>
+          </div>
+        </Card>
+      );
+    }
+
+    // A small label-and-input wrapper.
+    function Field(props) {
+      return (
+        <label className="block">
+          <SectionLabel>{props.label}</SectionLabel>
+          {props.children}
+        </label>
+      );
+    }
+
+
+    /* ---- 8c. FindMentors ---------------------------------------
+       What this section does:
+         Specifically surfaces companies that have ALREADY solved a
+         problem the founder is currently working on. The score is
+         not "synergy" — it\'s "depth of overlap with your challenges".
+         Each card shows a "What you can learn here" rationale.
+
+       What the user sees:
+         - If onboarding isn\'t done, a nudge to fill it in.
+         - Otherwise: a list of mentor candidates with a clear "they
+           have already solved X" rationale and a button to open the
+           Connection Playbook.
+
+       Data it uses:
+         - userProfile.challenges
+         - PORTFOLIO_COMPANIES (matched on .expertise)
+       ------------------------------------------------------------ */
+    function FindMentors(props) {
+      const profile = props.userProfile;
+
+      const candidates = React.useMemo(function () {
+        if (!profile || !profile.challenges || !profile.challenges.length) return [];
+        return mentorCandidates(profile, PORTFOLIO_COMPANIES);
+      }, [profile]);
+
+      const isShortlisted = function (id) {
+        return props.shortlist.some(function (s) { return s.companyId === id; });
+      };
+
+      return (
+        <div className="space-y-6">
+          <header>
+            <h2 className="font-display text-3xl text-[#0F1A2E]">Find mentors</h2>
+            <p className="text-[#5A6478] mt-1 max-w-3xl">
+              Match with portfolio companies that have already publicly tackled the problems you\'re working on right now.
+              The "Why" isn\'t a black-box score — it\'s a specific match between your challenges and their expertise.
+            </p>
+          </header>
+
+          {!profile || !profile.challenges || !profile.challenges.length ? (
+            <Card className="p-8 text-center">
+              <p className="text-[#0F1A2E] font-medium">First, tell us your top 3 growth challenges.</p>
+              <p className="text-sm text-[#5A6478] mt-1">Open <span className="font-medium">Find collaborators</span> and fill in the short profile. We\'ll use the same answers here.</p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {candidates.length ? (
+                candidates.map(function (m) {
+                  return (
+                    <Card key={m.company.id} className="p-5 fade-in">
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-display text-xl text-[#0F1A2E]">{m.company.name}</h3>
+                            <Badge tone="navy">{m.company.sector}</Badge>
+                            <Badge tone="neutral">{m.company.region}</Badge>
+                          </div>
+                          <p className="text-sm text-[#5A6478] mt-1">{m.company.description}</p>
+                        </div>
+                        <Badge tone="accent">Mentor — {m.score} of your challenges overlap</Badge>
+                      </div>
+
+                      <div className="mt-4 bg-amber-50/50 border border-amber-100 rounded-lg p-3">
+                        <SectionLabel>What you can learn here</SectionLabel>
+                        <ul className="space-y-1">
+                          {m.overlap.map(function (tag) {
+                            return (
+                              <li key={tag} className="text-sm text-[#0F1A2E] flex items-start gap-2">
+                                <span className="mt-0.5 inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-2" />
+                                <span>
+                                  How {m.company.name} approached <span className="font-medium">{labelForTag(tag).toLowerCase()}</span> — see public commentary in the Knowledge Feed.
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+
+                      <SourceList sources={m.company.sources} />
+
+                      <div className="mt-4 flex items-center gap-2 flex-wrap">
+                        <button
+                          onClick={function () { props.openPlaybook(m.company.id); }}
+                          className="text-sm font-medium text-white bg-[#C2410C] hover:bg-[#9A330A] px-3.5 py-1.5 rounded-md transition-colors"
+                        >
+                          Get learning playbook
+                        </button>
+                        {isShortlisted(m.company.id) ? (
+                          <button
+                            onClick={function () { props.removeFromShortlist(m.company.id); }}
+                            className="text-sm font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 px-3.5 py-1.5 rounded-md"
+                          >
+                            Remove from shortlist
+                          </button>
+                        ) : (
+                          <button
+                            onClick={function () { props.addToShortlist(m.company.id); }}
+                            className="text-sm font-medium text-[#0F1A2E] bg-white border border-[#0F1A2E]/15 hover:border-[#0F1A2E]/40 px-3.5 py-1.5 rounded-md"
+                          >
+                            Save to shortlist
+                          </button>
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })
+              ) : (
+                <Card className="p-8 text-center text-[#5A6478]">
+                  No direct mentor matches yet. Try widening your challenges in the onboarding form.
+                </Card>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+
+    /* ---- 8d. ConnectionPlaybook --------------------------------
+       What this section does:
+         Generates an editable warm-intro template (routed via the
+         user\'s Prosus partner, not cold), three tailored talking
+         points, and three suggested first-call questions for any
+         portfolio company.
+
+       What the user sees:
+         - A company picker (defaults to whatever they clicked).
+         - The match summary (score + reasons).
+         - Editable email text inside a big text-area.
+         - A "Copy to clipboard" button.
+         - The talking points and first-call questions.
+
+       Data it uses:
+         - userProfile (for personalising the template).
+         - PORTFOLIO_COMPANIES (the candidate companies).
+         - INTRO_TEMPLATES (the editable email templates).
+       ------------------------------------------------------------ */
+    function ConnectionPlaybook(props) {
+      const profile = props.userProfile;
+      // Local state: which company has the user picked?
+      const [companyId, setCompanyId] = React.useState(props.preselectedCompanyId || PORTFOLIO_COMPANIES[0].id);
+
+      // If the parent says to preselect a different company, follow it.
+      React.useEffect(function () {
+        if (props.preselectedCompanyId && props.preselectedCompanyId !== companyId) {
+          setCompanyId(props.preselectedCompanyId);
+        }
+      }, [props.preselectedCompanyId]);
+
+      const company = lookupCompany(companyId);
+      const playbook = React.useMemo(function () {
+        if (!company || !profile) return null;
+        return generatePlaybook(profile, company);
+      }, [company, profile]);
+
+      // Local editable state for the intro email so the user can edit it.
+      const [emailDraft, setEmailDraft] = React.useState('');
+      React.useEffect(function () {
+        if (playbook) setEmailDraft(playbook.email);
+      }, [playbook ? playbook.email : null]);
+
+      const [copied, setCopied] = React.useState(false);
+      const copy = function () {
+        try {
+          navigator.clipboard.writeText(emailDraft);
+          setCopied(true);
+          setTimeout(function () { setCopied(false); }, 1800);
+        } catch (e) {
+          // Clipboard not available — show a visible reminder.
+          setCopied(false);
+        }
+      };
+
+      const ready = profile && profile.sector && (profile.challenges.length > 0 || profile.offerings.length > 0);
+
+      return (
+        <div className="space-y-6">
+          <header>
+            <h2 className="font-display text-3xl text-[#0F1A2E]">Connection playbook</h2>
+            <p className="text-[#5A6478] mt-1 max-w-3xl">
+              Pick a company, get an editable warm-intro you can route via your Prosus partner (not cold), three talking
+              points specific to your overlap, and a starter set of first-call questions.
+            </p>
+          </header>
+
+          {!ready ? (
+            <Card className="p-8 text-center">
+              <p className="text-[#0F1A2E] font-medium">First, fill in the short profile in <span className="text-[#C2410C]">Find collaborators</span>.</p>
+              <p className="text-sm text-[#5A6478] mt-1">It powers the personalisation here.</p>
+            </Card>
+          ) : (
+            <React.Fragment>
+              <Card className="p-5">
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="text-sm text-stone-600">Pick a company:</label>
+                  <select
+                    value={companyId}
+                    onChange={function (e) { setCompanyId(e.target.value); }}
+                    className="px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+                  >
+                    {PORTFOLIO_COMPANIES.map(function (c) {
+                      return <option key={c.id} value={c.id}>{c.name} · {c.sector}</option>;
+                    })}
+                  </select>
+                </div>
+              </Card>
+
+              {company && playbook ? (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                  {/* LEFT: company snapshot + match */}
+                  <Card className="p-5 lg:col-span-1 self-start">
+                    <SectionLabel>Target</SectionLabel>
+                    <h3 className="font-display text-xl text-[#0F1A2E]">{company.name}</h3>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      <Badge tone="navy">{company.sector}</Badge>
+                      <Badge tone="neutral">{company.region}</Badge>
+                    </div>
+                    <p className="text-sm text-[#5A6478] mt-2">{company.description}</p>
+
+                    <div className="mt-4">
+                      <SectionLabel>Synergy</SectionLabel>
+                      <div className="flex items-baseline gap-2">
+                        <div className="font-display text-3xl text-[#C2410C] leading-none">{playbook.match.score}</div>
+                        <Badge tone="accent">{playbook.match.primaryType}</Badge>
+                      </div>
+                    </div>
+
+                    {playbook.match.rationales.length ? (
+                      <div className="mt-3">
+                        <SectionLabel>Why this works</SectionLabel>
+                        <ul className="space-y-1.5">
+                          {playbook.match.rationales.map(function (r, i) {
+                            return (
+                              <li key={i} className="text-sm text-[#0F1A2E]">
+                                <span className="font-medium">{r.type}:</span>{' '}
+                                <span className="text-[#5A6478]">{r.label}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ) : null}
+
+                    <SourceList sources={company.sources} />
+                  </Card>
+
+                  {/* RIGHT: editable email + talking points */}
+                  <div className="lg:col-span-2 space-y-5">
+                    <Card className="p-5">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <SectionLabel>Warm-intro email (route via your Prosus partner)</SectionLabel>
+                        <button
+                          onClick={copy}
+                          className="text-xs font-medium text-[#0F1A2E] bg-white border border-[#0F1A2E]/15 hover:border-[#0F1A2E]/40 px-2.5 py-1 rounded-md"
+                        >
+                          {copied ? 'Copied!' : 'Copy to clipboard'}
+                        </button>
+                      </div>
+                      <textarea
+                        value={emailDraft}
+                        onChange={function (e) { setEmailDraft(e.target.value); }}
+                        rows={14}
+                        className="mt-2 w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C] font-mono"
+                      />
+                      <p className="text-xs text-stone-500 mt-2">
+                        Tip: keep it short. Edit the [Prosus partner] placeholder before sending. We don\'t store partner names because we don\'t know yours.
+                      </p>
+                    </Card>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <Card className="p-5">
+                        <SectionLabel>Three tailored talking points</SectionLabel>
+                        <ol className="list-decimal pl-5 space-y-2 text-sm text-[#0F1A2E]">
+                          {playbook.talkingPoints.map(function (t, i) { return <li key={i}>{t}</li>; })}
+                        </ol>
+                      </Card>
+                      <Card className="p-5">
+                        <SectionLabel>First-call questions</SectionLabel>
+                        <ol className="list-decimal pl-5 space-y-2 text-sm text-[#0F1A2E]">
+                          {playbook.questions.map(function (q, i) { return <li key={i}>{q}</li>; })}
+                        </ol>
+                      </Card>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </React.Fragment>
+          )}
+        </div>
+      );
+    }
+
+
+    /* ---- 8e. KnowledgeFeed -------------------------------------
+       What this section does:
+         A curated feed of public content from non-edtech Prosus
+         portfolio founders — interviews, podcasts, conference
+         talks, news pieces — each tagged so the founder can filter
+         by their own challenges.
+
+       What the user sees:
+         - A row of topic chips and a "matches my challenges" toggle.
+         - A list of items, each with title, source, person/company,
+           a short summary, and a link to the original.
+
+       Data it uses:
+         - KNOWLEDGE_ITEMS.
+         - userProfile.challenges (for the personalisation toggle).
+       ------------------------------------------------------------ */
+    function KnowledgeFeed(props) {
+      const profile = props.userProfile;
+      const userTags = (profile && profile.challenges) || [];
+
+      const [topicFilter, setTopicFilter] = React.useState('');
+      const [matchMine, setMatchMine] = React.useState(false);
+      const [sourceTypeFilter, setSourceTypeFilter] = React.useState('');
+
+      // All unique tags / source types in the feed (for chip rows).
+      const allTags = React.useMemo(function () {
+        const set = {};
+        KNOWLEDGE_ITEMS.forEach(function (k) {
+          k.topics.forEach(function (t) { set[t] = true; });
+        });
+        return Object.keys(set);
+      }, []);
+      const allSourceTypes = React.useMemo(function () {
+        const set = {};
+        KNOWLEDGE_ITEMS.forEach(function (k) { set[k.sourceType] = true; });
+        return Object.keys(set);
+      }, []);
+
+      // Filter + rank.
+      const items = React.useMemo(function () {
+        let out = KNOWLEDGE_ITEMS.slice();
+        if (topicFilter) out = out.filter(function (k) { return k.topics.indexOf(topicFilter) !== -1; });
+        if (sourceTypeFilter) out = out.filter(function (k) { return k.sourceType === sourceTypeFilter; });
+        if (matchMine && userTags.length) {
+          out = out.filter(function (k) {
+            return k.topics.some(function (t) { return userTags.indexOf(t) !== -1; });
+          });
+        }
+        // When matchMine is on, sort by overlap descending; else by date desc.
+        if (matchMine && userTags.length) {
+          out.sort(function (a, b) {
+            const oa = a.topics.filter(function (t) { return userTags.indexOf(t) !== -1; }).length;
+            const ob = b.topics.filter(function (t) { return userTags.indexOf(t) !== -1; }).length;
+            return ob - oa;
+          });
+        } else {
+          out.sort(function (a, b) { return (b.publishedDate || '').localeCompare(a.publishedDate || ''); });
+        }
+        return out;
+      }, [topicFilter, sourceTypeFilter, matchMine, userTags.join('|')]);
+
+      return (
+        <div className="space-y-6">
+          <header>
+            <h2 className="font-display text-3xl text-[#0F1A2E]">Knowledge feed</h2>
+            <p className="text-[#5A6478] mt-1 max-w-3xl">
+              Public commentary from non-edtech Prosus founders — interviews, podcasts, conference talks, and news.
+              Filter by topic, or toggle "Matches my challenges" once you\'ve filled in your profile.
+            </p>
+          </header>
+
+          <Card className="p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={matchMine}
+                  disabled={!userTags.length}
+                  onChange={function (e) { setMatchMine(e.target.checked); }}
+                  className="accent-[#C2410C]"
+                />
+                <span className={!userTags.length ? 'text-stone-400' : 'text-[#0F1A2E]'}>
+                  Matches my challenges
+                  {!userTags.length ? <span className="text-stone-400"> (set your profile first)</span> : null}
+                </span>
+              </label>
+              <FilterSelect label="Topic" value={topicFilter} options={allTags.map(function (t) { return t; })} onChange={setTopicFilter} />
+              <FilterSelect label="Source type" value={sourceTypeFilter} options={allSourceTypes} onChange={setSourceTypeFilter} />
+              {(topicFilter || sourceTypeFilter || matchMine) ? (
+                <button
+                  onClick={function () { setTopicFilter(''); setSourceTypeFilter(''); setMatchMine(false); }}
+                  className="text-sm text-stone-600 hover:text-[#C2410C] underline decoration-dotted underline-offset-4"
+                >
+                  Reset
+                </button>
+              ) : null}
+            </div>
+          </Card>
+
+          <div className="space-y-3">
+            {items.map(function (k) {
+              const userOverlap = userTags.length
+                ? k.topics.filter(function (t) { return userTags.indexOf(t) !== -1; })
+                : [];
+              return (
+                <Card key={k.id} className="p-5 fade-in">
+                  <div className="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-stone-500 mb-1">
+                        {k.sourceType} · {k.sourceName} · {k.publishedDate}
+                      </div>
+                      <h3 className="font-display text-lg text-[#0F1A2E] leading-snug">
+                        {k.url ? (
+                          <a href={k.url} target="_blank" rel="noopener noreferrer" className="hover:text-[#C2410C]">
+                            {k.title}
+                          </a>
+                        ) : k.title}
+                      </h3>
+                      <div className="text-sm text-[#5A6478] mt-1">
+                        <span className="font-medium text-[#0F1A2E]">{k.person}</span> · {k.company}
+                      </div>
+                      <p className="text-sm text-[#0F1A2E] mt-2 leading-relaxed">{k.summary}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      {userOverlap.length ? (
+                        <Badge tone="accent">{userOverlap.length} of your challenges</Badge>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {k.topics.map(function (t) {
+                      return <Badge key={t} tone={userOverlap.indexOf(t) !== -1 ? 'accent' : 'neutral'}>{labelForTag(t)}</Badge>;
+                    })}
+                  </div>
+
+                  <div className="mt-3 text-xs text-stone-500">
+                    {k.url ? (
+                      <a href={k.url} target="_blank" rel="noopener noreferrer" className="underline decoration-stone-300 hover:decoration-orange-400">
+                        Visit {k.sourceName} →
+                      </a>
+                    ) : null}
+                    <span className="text-stone-400"> · last verified {k.verified}</span>
+                  </div>
+                </Card>
+              );
+            })}
+
+            {!items.length ? (
+              <Card className="p-10 text-center text-[#5A6478]">
+                No items match those filters.
+              </Card>
+            ) : null}
+          </div>
+        </div>
+      );
+    }
+
+
+    /* ---- 8f. MyShortlist ---------------------------------------
+       What this section does:
+         The founder\'s pinned list. They can mark each entry with a
+         status (Want to meet / Reached out / Connected / Working
+         together) and add a short note.
+
+       What the user sees:
+         - A list of saved companies.
+         - Each row has a status drop-down, a free-text note, and a
+           remove button.
+
+       Data it uses:
+         - shortlist (lifted state in App).
+         - PORTFOLIO_COMPANIES.
+       ------------------------------------------------------------ */
+    function MyShortlist(props) {
+      const list = props.shortlist;
+
+      const STATUSES = ['Want to meet', 'Reached out', 'Connected', 'Working together'];
+
+      return (
+        <div className="space-y-6">
+          <header>
+            <h2 className="font-display text-3xl text-[#0F1A2E]">My shortlist</h2>
+            <p className="text-[#5A6478] mt-1 max-w-3xl">
+              Companies you\'ve pinned. Tag each with where you are — "Want to meet" → "Working together" — and
+              jot down notes from your calls. Lives in this browser tab only; closing it will reset (no
+              accounts, no servers, by design).
+            </p>
+          </header>
+
+          {!list.length ? (
+            <Card className="p-10 text-center text-[#5A6478]">
+              <p>Nothing saved yet. Open <span className="font-medium">Portfolio Map</span> or <span className="font-medium">Find collaborators</span> and tap "Save to shortlist" on any company.</p>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {list.map(function (entry) {
+                const c = lookupCompany(entry.companyId);
+                if (!c) return null;
+                return (
+                  <Card key={entry.companyId} className="p-5 fade-in">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-display text-lg text-[#0F1A2E]">{c.name}</h3>
+                          <Badge tone="navy">{c.sector}</Badge>
+                          <Badge tone="neutral">{c.region}</Badge>
+                        </div>
+                        <p className="text-sm text-[#5A6478] mt-1">{c.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={entry.status || 'Want to meet'}
+                          onChange={function (e) { props.updateShortlistEntry(entry.companyId, { status: e.target.value }); }}
+                          className="px-3 py-1.5 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+                        >
+                          {STATUSES.map(function (s) { return <option key={s} value={s}>{s}</option>; })}
+                        </select>
+                        <button
+                          onClick={function () { props.removeFromShortlist(entry.companyId); }}
+                          className="text-sm text-stone-700 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-md"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <SectionLabel>Notes</SectionLabel>
+                      <textarea
+                        rows={3}
+                        value={entry.notes || ''}
+                        onChange={function (e) { props.updateShortlistEntry(entry.companyId, { notes: e.target.value }); }}
+                        placeholder="Who you spoke to, what they suggested, next step…"
+                        className="w-full px-3 py-2 border border-[#E8E2D5] rounded-md text-sm bg-white focus:outline-none focus:border-[#C2410C]"
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <button
+                        onClick={function () { props.openPlaybook(entry.companyId); }}
+                        className="text-sm font-medium text-[#C2410C] hover:text-[#9A330A] underline decoration-dotted underline-offset-4"
+                      >
+                        Open connection playbook →
+                      </button>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+
+    /* ============================================================
+       === 9. HEADER & FOOTER ====================================
+       ============================================================ */
+
+    function Header(props) {
+      return (
+        <header className="border-b border-[#E8E2D5] bg-[#FAF7F2]/80 backdrop-blur sticky top-0 z-20">
+          <div className="max-w-6xl mx-auto px-5 py-4 flex flex-wrap items-center gap-3 justify-between">
+            <div className="flex items-baseline gap-3">
+              <span className="font-display text-xl text-[#0F1A2E] tracking-tight">Prosus Portfolio Connect</span>
+              <span className="hidden md:inline text-xs text-stone-500">A founder-built tool · public info only</span>
+            </div>
+            <nav className="flex flex-wrap gap-1 -mx-1 overflow-x-auto scrollbar-thin">
+              {props.sections.map(function (s, i) {
+                const isActive = s.id === props.activeSectionId;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={function () { props.onSelect(s.id); }}
+                    className={
+                      'text-sm px-3 py-1.5 rounded-md transition-colors whitespace-nowrap ' +
+                      (isActive
+                        ? 'bg-[#0F1A2E] text-white'
+                        : 'text-[#0F1A2E] hover:bg-stone-100')
+                    }
+                  >
+                    <span className="text-stone-400 mr-1.5">{String(i + 1).padStart(2, '0')}</span>
+                    {s.name}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </header>
+      );
+    }
+
+    function Footer() {
+      return (
+        <footer className="border-t border-[#E8E2D5] mt-16 py-8 text-xs text-stone-500">
+          <div className="max-w-6xl mx-auto px-5 space-y-2">
+            <p>
+              <span className="font-medium text-[#0F1A2E]">Disclaimer.</span>{' '}
+              Independent founder-built tool. Not affiliated with, endorsed by, or operated on behalf of Prosus N.V., Naspers Limited, or any of their portfolio companies.
+            </p>
+            <p>
+              All company information is drawn from publicly available sources (news outlets, company websites, LinkedIn). Re-verify "last verified" dates before acting on anything material.
+              Metrics labelled <span className="text-orange-700">illustrative</span> were inferred from public commentary and should not be cited as fact.
+            </p>
+            <p>No founder emails or internal Prosus partner names are stored or generated by this tool. Warm intros must be routed via your own Prosus relationship.</p>
+          </div>
+        </footer>
+      );
+    }
+
+
+    /* ============================================================
+       === 10. SECTIONS REGISTRY =================================
+       ============================================================
+       This is the master list of features. The header navigation
+       and the main content area both read from it.
+
+       --- TO REMOVE A FEATURE ---
+       Delete (or comment out) the line for the feature you don\'t
+       want. The menu item AND the screen vanish.
+
+       --- TO RE-ORDER ---
+       Re-arrange the lines. The header pills and default landing
+       section both follow this order.
+
+       --- TO ADD A NEW FEATURE ---
+       1. Write a new component (copy one of the existing ones).
+       2. Add a line to this array with { id, name, Component }.
+       The id MUST be unique.
+       ------------------------------------------------------------ */
+
+    const SECTIONS = [
+      { id: 'portfolio',     name: 'Portfolio Map',       Component: PortfolioMap },
+      { id: 'collaborators', name: 'Find collaborators',  Component: FindCollaborators },
+      { id: 'mentors',       name: 'Find mentors',        Component: FindMentors },
+      { id: 'playbook',      name: 'Connection playbook', Component: ConnectionPlaybook },
+      { id: 'knowledge',     name: 'Knowledge feed',      Component: KnowledgeFeed },
+      { id: 'shortlist',     name: 'My shortlist',        Component: MyShortlist },
+    ];
+
+
+    /* ============================================================
+       === 11. APP ===============================================
+       ============================================================
+       The root component. It owns the shared state (user profile,
+       shortlist, which section is active) and renders:
+         - the header,
+         - the active section,
+         - the footer.
+
+       Each section gets exactly the slice of state it needs.
+       ------------------------------------------------------------ */
+
+    function App() {
+      // Which feature screen is currently visible.
+      const [activeSectionId, setActiveSectionId] = React.useState(SECTIONS[0].id);
+
+      // The founder\'s onboarding answers (used by collaborators / mentors / playbook).
+      // Lives in component state only — disappears when the tab is closed (per spec).
+      const [userProfile, setUserProfile] = React.useState({
+        founderName: '',
+        companyName: '',
+        sector: '',
+        region: '',
+        expandTo: '',
+        customerType: '',
+        gtmMotion: '',
+        challenges: [],   // up to 3 tags from CHALLENGE_OPTIONS
+        offerings: [],    // up to 3 tags from OFFERING_OPTIONS
+      });
+
+      // The shortlist — array of { companyId, status, notes }.
+      const [shortlist, setShortlist] = React.useState([]);
+
+      // The currently-selected playbook target (set when user clicks
+      // "Get connection playbook" anywhere in the app).
+      const [playbookCompanyId, setPlaybookCompanyId] = React.useState(null);
+
+      // -- shortlist helpers --
+      const addToShortlist = function (companyId) {
+        setShortlist(function (prev) {
+          if (prev.some(function (s) { return s.companyId === companyId; })) return prev;
+          return prev.concat([{ companyId: companyId, status: 'Want to meet', notes: '' }]);
+        });
+      };
+      const removeFromShortlist = function (companyId) {
+        setShortlist(function (prev) { return prev.filter(function (s) { return s.companyId !== companyId; }); });
+      };
+      const updateShortlistEntry = function (companyId, partial) {
+        setShortlist(function (prev) {
+          return prev.map(function (s) {
+            if (s.companyId !== companyId) return s;
+            return Object.assign({}, s, partial);
+          });
+        });
+      };
+
+      // Open the playbook section for a particular company.
+      const openPlaybook = function (companyId) {
+        setPlaybookCompanyId(companyId);
+        setActiveSectionId('playbook');
+        // Scroll to top — friendlier on long lists.
+        if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      // Find the active section\'s component.
+      const activeSection = SECTIONS.find(function (s) { return s.id === activeSectionId; }) || SECTIONS[0];
+      const ActiveComponent = activeSection.Component;
+
+      return (
+        <div className="min-h-screen bg-[#FAF7F2] text-[#0F1A2E]">
+          <Header
+            sections={SECTIONS}
+            activeSectionId={activeSectionId}
+            onSelect={function (id) { setActiveSectionId(id); if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          />
+
+          <main className="max-w-6xl mx-auto px-5 py-8">
+            <ActiveComponent
+              userProfile={userProfile}
+              setUserProfile={setUserProfile}
+              shortlist={shortlist}
+              addToShortlist={addToShortlist}
+              removeFromShortlist={removeFromShortlist}
+              updateShortlistEntry={updateShortlistEntry}
+              openPlaybook={openPlaybook}
+              preselectedCompanyId={playbookCompanyId}
+            />
+          </main>
+
+          <Footer />
+        </div>
+      );
+    }
+
+
+    // Mount the App into the page.
+    const rootEl = document.getElementById('root');
+    const root = ReactDOM.createRoot(rootEl);
+    root.render(<App />);
+  </script>
+</body>
+</html>
